@@ -1,0 +1,10 @@
+<header class="topbar" th:fragment="header">
+  <a class="brand" th:href="@{/}"><span class="brand-mark">✳</span><span>Cozinha em Dia<small>receitas & despensa</small></span></a>
+  <nav class="main-nav">
+    <a th:href="@{/}">Visão geral</a>
+    <a th:href="@{/receitas}">Receitas</a>
+    <a th:href="@{/despensa}">Minha despensa</a>
+    <a th:href="@{/o-que-posso-fazer}">O que posso fazer?</a>
+  </nav>
+  <div class="user-menu"><span class="avatar" th:text="${#strings.substring(session.usuarioNome,0,1).toUpperCase()}">C</span><span class="user-name" th:text="${session.usuarioNome}">Conta</span><form th:action="@{/logout}" method="post"><button class="logout" type="submit" title="Sair">↗</button></form></div>
+</header>

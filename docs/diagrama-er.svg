@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
+  <defs>
+    <style>
+      .title{font:700 27px Arial,sans-serif;fill:#233b2c}.subtitle{font:14px Arial,sans-serif;fill:#66776a}.entity{fill:#fff;stroke:#bfd0c0;stroke-width:2}.head{fill:#315f45}.headText{font:700 17px Arial,sans-serif;fill:#fff}.field{font:14px 'Courier New',monospace;fill:#334339}.line{fill:none;stroke:#64866b;stroke-width:2.4}.rel{font:700 12px Arial,sans-serif;fill:#41644a}.note{font:13px Arial,sans-serif;fill:#718074}
+    </style>
+  </defs>
+  <rect width="1400" height="760" fill="#f7f8f3"/>
+  <text x="45" y="46" class="title">Cozinha em Dia — modelo entidade-relacionamento</text>
+  <text x="45" y="72" class="subtitle">Cinco tabelas principais · SQLite + JPA/Hibernate · quantidades registradas na unidade informada</text>
+  <!-- relationships behind entities -->
+  <path class="line" d="M350 178 H505"/><text class="rel" x="370" y="165">1 : N</text><text class="note" x="368" y="198">cadastra</text>
+  <path class="line" d="M840 180 H1010 V255 H1130 V365"/><text class="rel" x="865" y="166">N : N</text><text class="note" x="865" y="198">por receita_ingredientes</text>
+  <path class="line" d="M680 325 V420"/><text class="rel" x="692" y="366">1 : N</text>
+  <path class="line" d="M200 278 V440"/><text class="rel" x="211" y="364">1 : N</text><text class="note" x="211" y="382">estoque por usuário</text>
+  <path class="line" d="M1150 255 V330 H890 V440"/><text class="rel" x="1000" y="316">1 : N</text>
+  <!-- USUARIOS -->
+  <g transform="translate(55 105)"><rect class="entity" width="295" height="174" rx="12"/><path class="head" d="M12 0 H283 Q295 0 295 12 V45 H0 V12 Q0 0 12 0"/><text x="18" y="29" class="headText">USUARIOS</text><text x="18" y="73" class="field">PK  id</text><text x="18" y="101" class="field">nome</text><text x="18" y="129" class="field">UK  email</text><text x="18" y="157" class="field">senha (hash)</text></g>
+  <!-- RECEITAS -->
+  <g transform="translate(505 105)"><rect class="entity" width="335" height="220" rx="12"/><path class="head" d="M12 0 H323 Q335 0 335 12 V45 H0 V12 Q0 0 12 0"/><text x="18" y="29" class="headText">RECEITAS</text><text x="18" y="73" class="field">PK  id</text><text x="18" y="101" class="field">FK  usuario_id</text><text x="18" y="129" class="field">nome, descricao</text><text x="18" y="157" class="field">modo_preparo</text><text x="18" y="185" class="field">tempo_preparo_min, porcoes</text></g>
+  <!-- INGREDIENTES -->
+  <g transform="translate(1010 105)"><rect class="entity" width="330" height="150" rx="12"/><path class="head" d="M12 0 H318 Q330 0 330 12 V45 H0 V12 Q0 0 12 0"/><text x="18" y="29" class="headText">INGREDIENTES</text><text x="18" y="73" class="field">PK  id</text><text x="18" y="101" class="field">UK  nome</text><text x="18" y="129" class="note">catálogo compartilhado</text></g>
+  <!-- DESPENSA -->
+  <g transform="translate(55 440)"><rect class="entity" width="390" height="220" rx="12"/><path class="head" d="M12 0 H378 Q390 0 390 12 V45 H0 V12 Q0 0 12 0"/><text x="18" y="29" class="headText">DESPENSA</text><text x="18" y="73" class="field">PK  id</text><text x="18" y="101" class="field">FK  usuario_id</text><text x="18" y="129" class="field">FK  ingrediente_id</text><text x="18" y="157" class="field">quantidade, unidade</text><text x="18" y="190" class="note">UNIQUE (usuario_id, ingrediente_id)</text></g>
+  <!-- RECEITA_INGREDIENTES -->
+  <g transform="translate(550 440)"><rect class="entity" width="430" height="220" rx="12"/><path class="head" d="M12 0 H418 Q430 0 430 12 V45 H0 V12 Q0 0 12 0"/><text x="18" y="29" class="headText">RECEITA_INGREDIENTES</text><text x="18" y="73" class="field">PK  id</text><text x="18" y="101" class="field">FK  receita_id</text><text x="18" y="129" class="field">FK  ingrediente_id</text><text x="18" y="157" class="field">quantidade, unidade</text><text x="18" y="190" class="note">UNIQUE (receita_id, ingrediente_id)</text></g>
+  <text x="1020" y="500" class="rel">Regra central</text><text x="1020" y="526" class="note">A aplicação compara</text><text x="1020" y="546" class="note">quantidade e unidade</text><text x="1020" y="566" class="note">da receita com o</text><text x="1020" y="586" class="note">estoque do usuário.</text>
+</svg>
