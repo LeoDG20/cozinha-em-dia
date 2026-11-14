@@ -1,18 +1,15 @@
 package br.com.cozinhaemdia;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -20,16 +17,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// Banco SQLite descartável: os testes não tocam em data/receitas_despensa.db
 @SpringBootTest
-@TestPropertySource(properties = "spring.datasource.url=jdbc:sqlite:./target/teste-autenticacao.db")
 @AutoConfigureMockMvc
 class AutenticacaoTest {
     @Autowired MockMvc mvc;
 
-    @BeforeAll
-    static void bancoLimpo() throws Exception {
-        Files.deleteIfExists(Path.of("target", "teste-autenticacao.db"));
+    @DynamicPropertySource
+    static void banco(DynamicPropertyRegistry registro) throws Exception {
+        BancoPostgresDeTeste.configurar(registro);
     }
 
     @Test
@@ -75,7 +70,7 @@ class AutenticacaoTest {
         mvc.perform(get("/despensa").session(sessao)).andExpect(status().isOk());
         mvc.perform(post("/logout").session(sessao).with(csrf())).andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/login?saiu"));
         mvc.perform(get("/despensa").session(sessao)).andExpect(status().is3xxRedirection());
-        // e a nova conta consegue entrar pelo login normal
+        // a conta criada também deve conseguir autenticar-se pelo formulário de login
         mvc.perform(post("/login").param("email", "MARIA@teste.com").param("senha", "segredo1").with(csrf()))
             .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/"));
     }

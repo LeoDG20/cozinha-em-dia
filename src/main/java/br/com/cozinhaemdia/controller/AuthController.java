@@ -37,7 +37,7 @@ public class AuthController {
         return "redirect:/";
     }
 
-    /** Após o cadastro, o usuário já entra autenticado (mesmo comportamento de antes). */
+    /** Após o cadastro, o usuário é autenticado automaticamente. */
     private void autenticar(Usuario usuario, HttpServletRequest request, HttpServletResponse response) {
         if (request.getSession(false) != null) request.changeSessionId();
         UsuarioAutenticado principal = new UsuarioAutenticado(usuario);

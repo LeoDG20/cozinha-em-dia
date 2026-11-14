@@ -1,4 +1,4 @@
-# Modelagem de dados — Cozinha em Dia
+# Modelagem de dados do Cozinha em Dia
 
 ## Diagrama entidade-relacionamento
 
@@ -11,14 +11,14 @@ erDiagram
     INGREDIENTES ||--o{ DESPENSA : armazenado
 
     USUARIOS {
-      INTEGER id PK
+      BIGINT id PK
       VARCHAR nome
       VARCHAR email UK
       VARCHAR senha
     }
     RECEITAS {
-      INTEGER id PK
-      INTEGER usuario_id FK
+      BIGINT id PK
+      BIGINT usuario_id FK
       VARCHAR nome
       VARCHAR descricao
       TEXT modo_preparo
@@ -26,21 +26,21 @@ erDiagram
       INTEGER porcoes
     }
     INGREDIENTES {
-      INTEGER id PK
+      BIGINT id PK
       VARCHAR nome UK
     }
     RECEITA_INGREDIENTES {
-      INTEGER id PK
-      INTEGER receita_id FK
-      INTEGER ingrediente_id FK
-      REAL quantidade
+      BIGINT id PK
+      BIGINT receita_id FK
+      BIGINT ingrediente_id FK
+      DOUBLE quantidade
       VARCHAR unidade
     }
     DESPENSA {
-      INTEGER id PK
-      INTEGER usuario_id FK
-      INTEGER ingrediente_id FK
-      REAL quantidade
+      BIGINT id PK
+      BIGINT usuario_id FK
+      BIGINT ingrediente_id FK
+      DOUBLE quantidade
       VARCHAR unidade
     }
 ```

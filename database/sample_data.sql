@@ -9,12 +9,12 @@ INSERT INTO ingredientes (id, nome) VALUES
 (17, 'Cenoura'), (18, 'Manteiga'), (19, 'Lentilha'), (20, 'Coentro');
 
 INSERT INTO receitas (id, usuario_id, nome, descricao, modo_preparo, tempo_preparo_min, porcoes) VALUES
-(1, 1, 'Omelete de queijo', 'Uma opção rápida para café da manhã ou jantar.', '1. Bata os ovos com uma pitada de sal.' || char(10) || '2. Aqueça o azeite em uma frigideira.' || char(10) || '3. Despeje os ovos, acrescente o queijo e cozinhe até firmar.', 10, 1),
-(2, 1, 'Macarrão alho e óleo', 'Clássico simples para o dia a dia.', '1. Cozinhe o macarrão em água com sal.' || char(10) || '2. Doure o alho no azeite sem queimar.' || char(10) || '3. Misture o macarrão escorrido e sirva.', 20, 2),
-(3, 1, 'Frango com arroz', 'Uma refeição completa com poucos ingredientes.', '1. Tempere o frango com alho e sal.' || char(10) || '2. Doure a cebola e o frango em um fio de azeite.' || char(10) || '3. Prepare o arroz e sirva junto.', 35, 2),
-(4, 1, 'Panqueca simples', 'Massa versátil para recheios doces ou salgados.', '1. Misture a farinha, o leite e os ovos até ficar homogêneo.' || char(10) || '2. Aqueça uma frigideira untada.' || char(10) || '3. Coloque uma concha de massa, doure dos dois lados e recheie.', 25, 2),
-(5, 1, 'Bolo de banana e aveia', 'Uma receita para aproveitar bananas maduras.', '1. Amasse as bananas e misture os ovos e o leite.' || char(10) || '2. Incorpore a aveia e o fermento.' || char(10) || '3. Leve ao forno preaquecido a 180 °C até dourar.', 35, 4),
-(6, 1, 'Salada de lentilha', 'Uma opção fresca e simples para variar o cardápio.', '1. Cozinhe a lentilha até ficar macia.' || char(10) || '2. Misture com a cenoura ralada e o coentro picado.' || char(10) || '3. Tempere a gosto e sirva fria.', 30, 2);
+(1, 1, 'Omelete de queijo', 'Uma opção rápida para café da manhã ou jantar.', '1. Bata os ovos com uma pitada de sal.' || chr(10) || '2. Aqueça o azeite em uma frigideira.' || chr(10) || '3. Despeje os ovos, acrescente o queijo e cozinhe até firmar.', 10, 1),
+(2, 1, 'Macarrão alho e óleo', 'Clássico simples para o dia a dia.', '1. Cozinhe o macarrão em água com sal.' || chr(10) || '2. Doure o alho no azeite sem queimar.' || chr(10) || '3. Misture o macarrão escorrido e sirva.', 20, 2),
+(3, 1, 'Frango com arroz', 'Uma refeição completa com poucos ingredientes.', '1. Tempere o frango com alho e sal.' || chr(10) || '2. Doure a cebola e o frango em um fio de azeite.' || chr(10) || '3. Prepare o arroz e sirva junto.', 35, 2),
+(4, 1, 'Panqueca simples', 'Massa versátil para recheios doces ou salgados.', '1. Misture a farinha, o leite e os ovos até ficar homogêneo.' || chr(10) || '2. Aqueça uma frigideira untada.' || chr(10) || '3. Coloque uma concha de massa, doure dos dois lados e recheie.', 25, 2),
+(5, 1, 'Bolo de banana e aveia', 'Uma receita para aproveitar bananas maduras.', '1. Amasse as bananas e misture os ovos e o leite.' || chr(10) || '2. Incorpore a aveia e o fermento.' || chr(10) || '3. Leve ao forno preaquecido a 180 °C até dourar.', 35, 4),
+(6, 1, 'Salada de lentilha', 'Uma opção fresca e simples para variar o cardápio.', '1. Cozinhe a lentilha até ficar macia.' || chr(10) || '2. Misture com a cenoura ralada e o coentro picado.' || chr(10) || '3. Tempere a gosto e sirva fria.', 30, 2);
 
 INSERT INTO receita_ingredientes (id, receita_id, ingrediente_id, quantidade, unidade) VALUES
 (1,1,1,3,'unidade'), (2,1,2,40,'g'), (3,1,3,5,'ml'), (4,1,4,2,'g'),
@@ -28,3 +28,10 @@ INSERT INTO despensa (id, usuario_id, ingrediente_id, quantidade, unidade) VALUE
 (1,1,1,6,'unidade'), (2,1,2,200,'g'), (3,1,3,100,'ml'), (4,1,4,200,'g'),
 (5,1,5,500,'g'), (6,1,6,6,'dente'), (7,1,7,1000,'g'), (8,1,8,250,'g'),
 (9,1,9,2,'unidade'), (10,1,10,500,'ml'), (11,1,11,4,'unidade'), (12,1,12,3,'unidade'), (13,1,13,1,'unidade');
+
+-- Ajusta as sequências, pois os registros acima foram inseridos com ids fixos.
+SELECT setval(pg_get_serial_sequence('usuarios', 'id'), (SELECT MAX(id) FROM usuarios));
+SELECT setval(pg_get_serial_sequence('ingredientes', 'id'), (SELECT MAX(id) FROM ingredientes));
+SELECT setval(pg_get_serial_sequence('receitas', 'id'), (SELECT MAX(id) FROM receitas));
+SELECT setval(pg_get_serial_sequence('receita_ingredientes', 'id'), (SELECT MAX(id) FROM receita_ingredientes));
+SELECT setval(pg_get_serial_sequence('despensa', 'id'), (SELECT MAX(id) FROM despensa));

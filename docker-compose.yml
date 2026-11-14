@@ -1,0 +1,20 @@
+services:
+  banco:
+    image: postgres:16-alpine
+    container_name: cozinha-em-dia-postgres
+    environment:
+      POSTGRES_DB: cozinha_em_dia
+      POSTGRES_USER: cozinha
+      POSTGRES_PASSWORD: cozinha123
+    ports:
+      - "5432:5432"
+    volumes:
+      - dados_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cozinha -d cozinha_em_dia"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  dados_postgres:

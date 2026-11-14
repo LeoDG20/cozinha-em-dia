@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/** Busca o usuário (pelo e-mail) na tabela "usuarios" do SQLite para o Spring Security. */
+/** Carrega o usuário pelo e-mail, na tabela "usuarios", para o Spring Security. */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final UsuarioRepository usuarios;
