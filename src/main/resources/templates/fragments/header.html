@@ -6,5 +6,5 @@
     <a th:href="@{/despensa}">Minha despensa</a>
     <a th:href="@{/o-que-posso-fazer}">O que posso fazer?</a>
   </nav>
-  <div class="user-menu"><span class="avatar" th:text="${#strings.substring(session.usuarioNome,0,1).toUpperCase()}">C</span><span class="user-name" th:text="${session.usuarioNome}">Conta</span><form th:action="@{/logout}" method="post"><button class="logout" type="submit" title="Sair">↗</button></form></div>
+  <div class="user-menu"><span class="avatar" th:text="${#strings.substring(#authentication.principal.nome,0,1).toUpperCase()}">C</span><span class="user-name" th:text="${#authentication.principal.nome}">Conta</span><form th:action="@{/logout}" method="post"><button class="logout" type="submit" title="Sair">↗</button></form></div>
 </header>

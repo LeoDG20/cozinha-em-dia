@@ -64,7 +64,7 @@ erDiagram
 ## Regras de negócio do protótipo
 
 1. O e-mail é único e a senha é armazenada como hash, não em texto puro.
-2. As páginas de receitas e despensa trabalham somente com dados associados ao usuário da sessão.
+2. As páginas de receitas e despensa trabalham somente com dados associados ao usuário autenticado.
 3. Quantidades precisam ser maiores que zero.
 4. Ao adicionar novamente um ingrediente que já está na despensa com a mesma unidade, a quantidade é somada. Se a unidade for diferente, o sistema pede para remover e recadastrar o item para evitar misturar unidades.
 5. Uma receita fica **disponível** quando há quantidade suficiente de todos os seus ingredientes; **parcial** quando há algum estoque correspondente, mas ainda falta quantidade ou ingrediente; e **indisponível** quando nenhum item requerido tem estoque correspondente suficiente para avançar.

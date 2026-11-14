@@ -20,4 +20,4 @@
 | `POST` | `/despensa/remover` | Remover item da despensa |
 | `GET` | `/o-que-posso-fazer` | Comparar estoque e ingredientes das receitas |
 
-As rotas privadas exigem que exista um `usuarioId` na sessão. A proteção neste primeiro protótipo é feita por um interceptor MVC simples, para demonstrar fluxo de autenticação sem introduzir uma configuração completa do Spring Security.
+As rotas privadas exigem usuário autenticado pelo **Spring Security** (`SecurityConfig`); quem não está autenticado é redirecionado para `/login`. `POST /login` e `POST /logout` são tratados pelo Spring Security (campos `email` e `senha`), e todo `POST` exige o token CSRF, inserido automaticamente pelo Thymeleaf nos formulários.
