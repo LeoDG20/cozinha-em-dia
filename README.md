@@ -25,32 +25,39 @@ A comparação considera quantidade e unidade. Nesta versão não há conversão
 
 ## Execução local no Windows
 
-### Requisitos
-
-1. JDK 21 (`java -version` deve indicar a versão 21).
-2. Docker Desktop, em execução, para subir o PostgreSQL. Caso prefira instalar o PostgreSQL diretamente, veja a seção "Alternativa sem Docker".
-3. Conexão com a internet na primeira execução, pois o Maven Wrapper e o Docker baixam as dependências e a imagem do banco.
-
-O Maven não precisa estar instalado.
-
-### Passos
+### Execução automática (recomendada)
 
 1. Baixe o ZIP do projeto e extraia-o, ou clone o repositório com `git clone`.
-2. Abra a pasta raiz do projeto, que contém os arquivos `pom.xml`, `mvnw.cmd` e `docker-compose.yml`.
-3. Execute o arquivo `executar.bat` com um duplo clique. Ele inicia o banco de dados e, em seguida, a aplicação.
-4. Aguarde a mensagem `Started CozinhaEmDiaApplication` no terminal e acesse `http://localhost:8081` no navegador.
-5. Entre com a conta de demonstração ou crie uma conta própria na tela de cadastro.
+2. Na pasta raiz, execute `CozinhaEmDia.exe` com um duplo clique (o arquivo `executar.bat` faz o mesmo).
+3. O programa verifica o ambiente e prepara o que for necessário:
+   - instala o JDK 21, caso não esteja instalado;
+   - instala e inicia o Docker Desktop, caso não esteja instalado ou em execução;
+   - inicia o banco PostgreSQL com Docker Compose;
+   - inicia a aplicação com o Maven Wrapper e abre o navegador em `http://localhost:8081`.
+4. Entre com a conta de demonstração ou crie uma conta própria na tela de cadastro.
 
-Os mesmos passos podem ser feitos manualmente, em um terminal aberto na pasta raiz:
+Observações sobre a primeira execução:
+
+- É necessária conexão com a internet, pois são baixados o JDK, o Docker Desktop, a imagem do PostgreSQL e as dependências do Maven.
+- O Windows solicitará permissão de administrador durante a instalação do JDK e do Docker Desktop.
+- O Docker Desktop exige virtualização habilitada na BIOS e o recurso WSL 2. Após a instalação, o Docker pode solicitar a aceitação dos termos de uso e a reinicialização do computador. Nesse caso, reinicie e execute `CozinhaEmDia.exe` novamente.
+- Por ser um programa sem assinatura digital, o Windows SmartScreen ou o antivírus pode exibir um aviso. O executável apenas chama o script `scripts/preparar-e-executar.ps1`, cujo código está no repositório (`scripts/lancador/Lancador.cs` e `compilar.bat` permitem recompilá-lo).
+- Para apenas verificar o que está instalado, sem instalar nada, execute `CozinhaEmDia.exe -SomenteVerificar`.
+
+Para encerrar a aplicação, use `Ctrl+C` na janela do terminal. Para parar o banco de dados, execute `docker compose stop`.
+
+A aplicação utiliza a porta 8081. Caso esteja ocupada, altere `server.port` em `src/main/resources/application.properties`.
+
+### Execução manual
+
+Requisitos: JDK 21 (`java -version` deve indicar a versão 21) e Docker Desktop em execução. O Maven não precisa estar instalado. Em um terminal aberto na pasta raiz do projeto:
 
 ```bash
 docker compose up -d --wait
 .\mvnw.cmd spring-boot:run
 ```
 
-Para encerrar a aplicação, use `Ctrl+C` no terminal. Para parar o banco de dados, execute `docker compose stop`.
-
-A aplicação utiliza a porta 8081. Caso esteja ocupada, altere `server.port` em `src/main/resources/application.properties`.
+Depois, acesse `http://localhost:8081`. Se preferir não usar o Docker, veja a seção "Alternativa sem Docker".
 
 ### Conta de demonstração
 
@@ -102,7 +109,7 @@ CREATE USER cozinha WITH PASSWORD 'cozinha123';
 CREATE DATABASE cozinha_em_dia OWNER cozinha;
 ```
 
-3. Execute a aplicação com `.\mvnw.cmd spring-boot:run`. O `executar.bat` também pode ser usado: sem o Docker instalado, ele apenas inicia a aplicação.
+3. Execute a aplicação com `.\mvnw.cmd spring-boot:run`. Não use o `CozinhaEmDia.exe` nesse caso, pois ele instalaria o Docker.
 
 ## Autenticação
 
@@ -160,7 +167,8 @@ src/test/java/  testes automatizados
 database/       scripts SQL de referência
 docker-compose.yml   banco PostgreSQL
 mvnw, mvnw.cmd, .mvn/   Maven Wrapper
-executar.bat    atalho para iniciar banco e aplicação no Windows
+CozinhaEmDia.exe, executar.bat   preparam o ambiente e iniciam banco e aplicação
+scripts/        script de preparação (PowerShell) e código do lançador
 ```
 
 ## Limitações
