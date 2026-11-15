@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 
 // Lançador do Cozinha em Dia. Apenas chama scripts\preparar-e-executar.ps1,
-// que contém toda a lógica (verificação do JDK e do Docker, banco e aplicação).
+// que contém toda a lógica (verificação do JDK e do PostgreSQL, e a aplicação).
 internal static class Lancador
 {
     private static int Main(string[] args)

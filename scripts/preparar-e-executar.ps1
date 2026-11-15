@@ -2,25 +2,32 @@
 #
 # Etapas:
 #   1. verifica o JDK 21 e o instala, se necessario;
-#   2. verifica o Docker Desktop, instala se necessario e aguarda o motor iniciar;
-#   3. inicia o banco PostgreSQL (docker compose);
-#   4. inicia a aplicacao com o Maven Wrapper e abre o navegador.
+#   2. verifica o PostgreSQL, instala se necessario e cria o usuario e o banco da aplicacao;
+#   3. inicia a aplicacao com o Maven Wrapper e abre o navegador.
 #
 # Uso: powershell -ExecutionPolicy Bypass -File scripts\preparar-e-executar.ps1
-# Com -SomenteVerificar, apenas informa o que esta instalado, sem instalar nem executar nada.
+#   -SomenteVerificar : informa o que esta instalado, sem instalar nem executar nada.
+#   -SomenteBanco     : prepara o JDK e o banco de dados, mas nao inicia a aplicacao.
 #
 # Este arquivo contem apenas caracteres ASCII, para funcionar no Windows PowerShell 5.1.
 
-param([switch]$SomenteVerificar)
+param([switch]$SomenteVerificar, [switch]$SomenteBanco)
 
 $ErrorActionPreference = 'Stop'
 $raiz = Split-Path -Parent $PSScriptRoot
 Set-Location $raiz
 
+# Configuracao do banco (deve coincidir com os valores padrao de application.properties)
+$portaBanco = 5432
+$bancoNome = 'cozinha_em_dia'
+$bancoUsuario = 'cozinha'
+$bancoSenha = 'cozinha123'
+# Senha do superusuario "postgres" definida quando este script instala o PostgreSQL
+$senhaAdminPadrao = 'postgres123'
+
 $urlJdk = 'https://aka.ms/download-jdk/microsoft-jdk-21-windows-x64.msi'
-$urlDocker = 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe'
-$caminhoDockerDesktop = Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe'
-$pastaDockerBin = Join-Path $env:ProgramFiles 'Docker\Docker\resources\bin'
+$urlPostgres = 'https://get.enterprisedb.com/postgresql/postgresql-16.9-1-windows-x64.exe'
+$script:psql = $null
 
 function Escrever($texto) { Write-Host $texto }
 function Titulo($texto) { Write-Host ''; Write-Host "== $texto" -ForegroundColor Cyan }
@@ -113,51 +120,159 @@ function Instalar-Java {
     if (-not (Java-Pronto)) { Falhar 'Nao foi possivel instalar o JDK 21. Instale-o manualmente (https://learn.microsoft.com/java/openjdk/download) e execute novamente.' }
 }
 
-# ---------------------------------------------------------------- Docker
+# ---------------------------------------------------------------- PostgreSQL
 
-function Docker-Instalado {
-    if (Tem-Comando 'docker') { return $true }
-    if (Test-Path (Join-Path $pastaDockerBin 'docker.exe')) {
-        $env:Path = "$pastaDockerBin;$env:Path"
-        return $true
+function Localizar-Psql {
+    if (Tem-Comando 'psql') { return (Get-Command psql).Source }
+    $achados = Get-ChildItem "$env:ProgramFiles\PostgreSQL\*\bin\psql.exe" -ErrorAction SilentlyContinue |
+        Sort-Object { if ($_.Directory.Parent.Name -match '^\d+') { [int]$Matches[0] } else { 0 } } -Descending
+    if ($achados) { return @($achados)[0].FullName }
+    return $null
+}
+
+# Executa uma instrucao SQL com o psql. Retorna Ok (sucesso) e Saida (texto retornado).
+function Executar-Sql($usuario, $senha, $banco, $sql) {
+    $anterior = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $env:PGPASSWORD = $senha
+    $env:PGCLIENTENCODING = 'UTF8'
+    try {
+        $saida = & $script:psql -h localhost -p $portaBanco -U $usuario -d $banco -w -v ON_ERROR_STOP=1 -tAc $sql 2>$null
+        $ok = ($LASTEXITCODE -eq 0)
+        return @{ Ok = $ok; Saida = (($saida | Out-String).Trim()) }
+    } finally {
+        Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+        $ErrorActionPreference = $anterior
+    }
+}
+
+function Porta-Aberta {
+    $cliente = New-Object Net.Sockets.TcpClient
+    try {
+        $espera = $cliente.BeginConnect('127.0.0.1', $portaBanco, $null, $null)
+        if ($espera.AsyncWaitHandle.WaitOne(1000) -and $cliente.Connected) { return $true }
+    } catch { } finally { $cliente.Close() }
+    return $false
+}
+
+function Aguardar-Porta($segundos) {
+    for ($i = 0; $i -lt $segundos; $i++) {
+        if (Porta-Aberta) { return $true }
+        Start-Sleep -Seconds 1
     }
     return $false
 }
 
-function Docker-Ativo {
-    try { cmd /c 'docker info >nul 2>&1'; return ($LASTEXITCODE -eq 0) } catch { return $false }
+function Banco-Pronto {
+    if (-not $script:psql) { return $false }
+    $r = Executar-Sql $bancoUsuario $bancoSenha $bancoNome 'SELECT 1'
+    return ($r.Ok -and $r.Saida -eq '1')
 }
 
-function Instalar-Docker {
-    Escrever 'Docker nao encontrado. Iniciando a instalacao do Docker Desktop (pode levar alguns minutos).'
+# Inicia o servico do PostgreSQL instalado, caso esteja parado
+function Iniciar-ServicoPostgres {
+    $servicos = @(Get-Service -Name 'postgresql*' -ErrorAction SilentlyContinue | Where-Object { $_.Status -ne 'Running' })
+    foreach ($servico in $servicos) {
+        Escrever ("Iniciando o servico " + $servico.Name + "...")
+        try { Start-Service -Name $servico.Name -ErrorAction Stop }
+        catch { Start-Process cmd.exe -ArgumentList "/c net start `"$($servico.Name)`"" -Verb RunAs -Wait }
+        if (Aguardar-Porta 20) { return }
+    }
+}
+
+function Instalar-Postgres {
+    Escrever 'PostgreSQL nao encontrado. Iniciando a instalacao (o Windows pode pedir permissao de administrador).'
+    $argumentos = "--mode unattended --unattendedmodeui none --superpassword $senhaAdminPadrao --serverport $portaBanco --disable-components stackbuilder"
     $instalado = $false
     if (Tem-Comando 'winget') {
-        & winget install -e --id Docker.DockerDesktop --accept-package-agreements --accept-source-agreements
+        & winget install -e --id PostgreSQL.PostgreSQL.16 --accept-package-agreements --accept-source-agreements --override $argumentos
         $instalado = ($LASTEXITCODE -eq 0)
     }
     if (-not $instalado) {
-        $exe = Join-Path $env:TEMP 'DockerDesktopInstaller.exe'
-        Baixar $urlDocker $exe
-        $p = Start-Process $exe -ArgumentList 'install --quiet --accept-license' -Verb RunAs -Wait -PassThru
+        $exe = Join-Path $env:TEMP 'postgresql-instalador.exe'
+        Baixar $urlPostgres $exe
+        $p = Start-Process $exe -ArgumentList $argumentos -Verb RunAs -Wait -PassThru
         $instalado = ($p.ExitCode -eq 0)
     }
     Atualizar-Path
-    if (-not (Docker-Instalado)) {
-        Falhar 'A instalacao do Docker Desktop nao foi concluida. Reinicie o computador e execute novamente, ou instale-o manualmente em https://www.docker.com/products/docker-desktop'
+    $script:psql = Localizar-Psql
+    if (-not $script:psql) {
+        Falhar 'A instalacao do PostgreSQL nao foi concluida. Instale-o manualmente (https://www.postgresql.org/download/windows/) e execute novamente.'
     }
+    Escrever 'Aguardando o servico do PostgreSQL iniciar...'
+    if (-not (Aguardar-Porta 90)) { Iniciar-ServicoPostgres }
+    if (-not (Porta-Aberta)) { Falhar 'O servico do PostgreSQL nao iniciou. Reinicie o computador e execute novamente.' }
 }
 
-function Aguardar-Docker {
-    if (Docker-Ativo) { return }
-    if (-not (Test-Path $caminhoDockerDesktop)) { Falhar 'Docker Desktop nao encontrado em Program Files.' }
-    Escrever 'Iniciando o Docker Desktop. Na primeira vez, aceite os termos de uso se a janela do Docker pedir.'
-    Start-Process $caminhoDockerDesktop
-    for ($i = 0; $i -lt 90; $i++) {
-        Start-Sleep -Seconds 4
-        if (Docker-Ativo) { Escrever 'Docker pronto.'; return }
-        if ($i % 5 -eq 4) { Escrever 'Aguardando o Docker iniciar...' }
+function Ler-Senha {
+    $segura = Read-Host -AsSecureString
+    $ponteiro = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura)
+    try { return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($ponteiro) }
+    finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ponteiro) }
+}
+
+function Instrucoes-Manuais {
+    return @"
+Crie o usuario e o banco manualmente (no psql ou no pgAdmin, como superusuario):
+
+  CREATE USER $bancoUsuario WITH PASSWORD '$bancoSenha';
+  CREATE DATABASE $bancoNome OWNER $bancoUsuario;
+
+Depois, execute este programa novamente.
+"@
+}
+
+# Cria o usuario e o banco da aplicacao, caso ainda nao existam
+function Criar-Banco {
+    $senha = $senhaAdminPadrao
+    if (-not (Executar-Sql 'postgres' $senha 'postgres' 'SELECT 1').Ok) {
+        Escrever 'Foi encontrado um PostgreSQL ja instalado neste computador.'
+        Escrever 'Informe a senha do usuario "postgres" para criar o banco da aplicacao (ou apenas ENTER para ver as instrucoes manuais):'
+        $senha = Ler-Senha
+        if (-not $senha -or -not (Executar-Sql 'postgres' $senha 'postgres' 'SELECT 1').Ok) {
+            Falhar ("Nao foi possivel acessar o PostgreSQL como administrador.`n" + (Instrucoes-Manuais))
+        }
     }
-    Falhar 'O Docker nao ficou pronto em 6 minutos. Se acabou de ser instalado, reinicie o computador (e, se solicitado, finalize a configuracao do WSL 2) e execute novamente.'
+
+    $papel = Executar-Sql 'postgres' $senha 'postgres' "SELECT 1 FROM pg_roles WHERE rolname='$bancoUsuario'"
+    if ($papel.Saida -eq '1') {
+        [void](Executar-Sql 'postgres' $senha 'postgres' "ALTER ROLE $bancoUsuario WITH LOGIN PASSWORD '$bancoSenha'")
+    } else {
+        $r = Executar-Sql 'postgres' $senha 'postgres' "CREATE ROLE $bancoUsuario WITH LOGIN PASSWORD '$bancoSenha'"
+        if (-not $r.Ok) { Falhar ("Nao foi possivel criar o usuario do banco.`n" + (Instrucoes-Manuais)) }
+    }
+
+    $existe = Executar-Sql 'postgres' $senha 'postgres' "SELECT 1 FROM pg_database WHERE datname='$bancoNome'"
+    if ($existe.Saida -ne '1') {
+        $r = Executar-Sql 'postgres' $senha 'postgres' "CREATE DATABASE $bancoNome OWNER $bancoUsuario ENCODING 'UTF8' TEMPLATE template0"
+        if (-not $r.Ok) { $r = Executar-Sql 'postgres' $senha 'postgres' "CREATE DATABASE $bancoNome OWNER $bancoUsuario" }
+        if (-not $r.Ok) { Falhar ("Nao foi possivel criar o banco de dados.`n" + (Instrucoes-Manuais)) }
+    }
+
+    if (-not (Banco-Pronto)) { Falhar ("O banco foi criado, mas o acesso com o usuario da aplicacao falhou.`n" + (Instrucoes-Manuais)) }
+}
+
+function Preparar-Banco {
+    $script:psql = Localizar-Psql
+    if ($script:psql -and -not (Porta-Aberta)) {
+        Iniciar-ServicoPostgres
+        [void](Aguardar-Porta 20)
+    }
+    if ($script:psql -and (Porta-Aberta) -and (Banco-Pronto)) {
+        Escrever 'Banco de dados ja configurado.'
+        return
+    }
+    if (-not $script:psql) {
+        if (Porta-Aberta) {
+            Falhar ("Ha um servidor em execucao na porta $portaBanco, mas o cliente psql nao foi encontrado.`n" + (Instrucoes-Manuais))
+        }
+        Instalar-Postgres
+    } elseif (-not (Porta-Aberta)) {
+        Falhar "O PostgreSQL esta instalado, mas nao responde na porta $portaBanco. Inicie o servico (services.msc) e execute novamente."
+    }
+    Escrever 'Criando o usuario e o banco de dados da aplicacao...'
+    Criar-Banco
+    Escrever 'Banco de dados pronto.'
 }
 
 # ---------------------------------------------------------------- Execucao
@@ -166,29 +281,29 @@ Titulo 'Cozinha em Dia: preparacao do ambiente'
 
 if ($SomenteVerificar) {
     Escrever ('JDK 21 ou superior : ' + $(if (Java-Pronto) { 'OK' } else { 'nao encontrado (sera instalado)' }))
-    $dockerOk = Docker-Instalado
-    Escrever ('Docker instalado    : ' + $(if ($dockerOk) { 'OK' } else { 'nao encontrado (sera instalado)' }))
-    if ($dockerOk) { Escrever ('Docker em execucao  : ' + $(if (Docker-Ativo) { 'sim' } else { 'nao (sera iniciado)' })) }
+    $script:psql = Localizar-Psql
+    Escrever ('PostgreSQL (psql)   : ' + $(if ($script:psql) { "OK ($script:psql)" } else { 'nao encontrado (sera instalado)' }))
+    $ativo = Porta-Aberta
+    Escrever ("Servidor na porta $portaBanco : " + $(if ($ativo) { 'respondendo' } else { 'nao responde' }))
+    if ($script:psql -and $ativo) { Escrever ('Banco da aplicacao   : ' + $(if (Banco-Pronto) { 'configurado' } else { 'ainda nao criado (sera criado)' })) }
     Escrever ('winget disponivel   : ' + $(if (Tem-Comando 'winget') { 'sim' } else { 'nao (sera usado download direto)' }))
     Escrever ('Raiz do projeto     : ' + $raiz)
     exit 0
 }
 
-Titulo '1/4  Java (JDK 21)'
+Titulo '1/3  Java (JDK 21)'
 if (Java-Pronto) { Escrever 'JDK 21 ou superior encontrado.' } else { Instalar-Java; Escrever 'JDK 21 instalado.' }
 
-Titulo '2/4  Docker'
-if (-not (Docker-Instalado)) { Instalar-Docker }
-Aguardar-Docker
+Titulo '2/3  Banco de dados PostgreSQL'
+Preparar-Banco
 
-Titulo '3/4  Banco de dados PostgreSQL'
-& docker compose up -d --wait
-if ($LASTEXITCODE -ne 0) {
-    Falhar 'Nao foi possivel iniciar o banco. Verifique se a porta 5432 esta livre (outro PostgreSQL em execucao?) e se o Docker Desktop esta aberto.'
+if ($SomenteBanco) {
+    Escrever ''
+    Escrever 'Ambiente pronto (opcao -SomenteBanco: a aplicacao nao foi iniciada).'
+    exit 0
 }
-Escrever 'Banco de dados em execucao.'
 
-Titulo '4/4  Aplicacao'
+Titulo '3/3  Aplicacao'
 Escrever 'Na primeira execucao, o Maven Wrapper baixa as dependencias (pode levar alguns minutos).'
 Escrever 'O navegador abrira em http://localhost:8081 quando a aplicacao estiver pronta.'
 Escrever 'Para encerrar, pressione Ctrl+C ou feche esta janela.'
@@ -208,5 +323,5 @@ Start-Job -ScriptBlock {
 $codigo = $LASTEXITCODE
 
 Escrever ''
-Escrever 'A aplicacao foi encerrada. O banco continua em execucao; para para-lo, use: docker compose stop'
+Escrever 'A aplicacao foi encerrada. O PostgreSQL continua em execucao como servico do Windows.'
 Encerrar $codigo
