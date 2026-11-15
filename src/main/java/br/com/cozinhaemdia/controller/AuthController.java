@@ -16,9 +16,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.regex.Pattern;
+
 /** Telas de login e cadastro. A autenticação (POST /login) e o logout (POST /logout) são do Spring Security. */
 @Controller
 public class AuthController {
+    /** Limites iguais aos das colunas nome e email da tabela usuarios. */
+    private static final int TAMANHO_MAXIMO_NOME = 100;
+    private static final int TAMANHO_MAXIMO_EMAIL = 160;
+    private static final Pattern FORMATO_EMAIL = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+
     private final UsuarioRepository usuarios;
     private final PasswordEncoder encoder;
     public AuthController(UsuarioRepository usuarios, PasswordEncoder encoder) { this.usuarios = usuarios; this.encoder = encoder; }
@@ -30,6 +37,8 @@ public class AuthController {
         if (nome.isBlank() || email.isBlank() || senha.length() < 6) {
             model.addAttribute("erro", "Preencha os campos e use uma senha com pelo menos 6 caracteres."); return "cadastro";
         }
+        if (nome.trim().length() > TAMANHO_MAXIMO_NOME) { model.addAttribute("erro", "O nome deve ter no máximo " + TAMANHO_MAXIMO_NOME + " caracteres."); return "cadastro"; }
+        if (!emailValido(email.trim())) { model.addAttribute("erro", "Informe um e-mail válido, por exemplo voce@email.com."); return "cadastro"; }
         if (!senha.equals(confirmarSenha)) { model.addAttribute("erro", "As senhas não coincidem."); return "cadastro"; }
         if (usuarios.existsByEmailIgnoreCase(email.trim())) { model.addAttribute("erro", "Já existe uma conta com esse e-mail."); return "cadastro"; }
         Usuario usuario = usuarios.save(new Usuario(nome.trim(), email.trim().toLowerCase(), encoder.encode(senha)));
@@ -45,6 +54,10 @@ public class AuthController {
         contexto.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
         SecurityContextHolder.setContext(contexto);
         new HttpSessionSecurityContextRepository().saveContext(contexto, request, response);
+    }
+
+    private static boolean emailValido(String email) {
+        return email.length() <= TAMANHO_MAXIMO_EMAIL && FORMATO_EMAIL.matcher(email).matches();
     }
 
     private boolean jaAutenticado() {
