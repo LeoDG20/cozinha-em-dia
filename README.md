@@ -2,7 +2,14 @@
 
 Aplicação web desenvolvida como trabalho acadêmico para o cadastro de receitas, o controle da despensa e a verificação de quais pratos podem ser preparados com os ingredientes disponíveis. O sistema segue o padrão MVC, com Java, Spring Boot, Thymeleaf e PostgreSQL.
 
-Equipe: Leonardo De Gobbi, Matheus Molina Baretta, Michael Jun Ohara e Rafael Sabino Figueiredo.
+## Equipe
+
+| Integrante | Conta no GitHub |
+|---|---|
+| Leonardo De Gobbi | [LeoDG20](https://github.com/LeoDG20) |
+| Matheus Molina Baretta | [matheusmolina05](https://github.com/matheusmolina05) |
+| Michael Jun Ohara | [butterJun](https://github.com/butterJun) |
+| Rafael Sabino Figueiredo | [rafael-blaze](https://github.com/rafael-blaze) |
 
 ## Funcionalidades
 
