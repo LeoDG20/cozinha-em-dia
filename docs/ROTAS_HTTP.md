@@ -16,7 +16,8 @@
 | `POST` | `/receitas/{id}/editar` | Salvar edição |
 | `POST` | `/receitas/{id}/excluir` | Excluir receita |
 | `GET` | `/despensa` | Consultar ingredientes do usuário |
-| `POST` | `/despensa` | Adicionar ou somar um ingrediente |
+| `POST` | `/despensa` | Adicionar ou somar um ingrediente (converte unidades compatíveis) |
+| `POST` | `/despensa/editar` | Alterar a quantidade e a unidade de um item |
 | `POST` | `/despensa/remover` | Remover item da despensa |
 | `GET` | `/o-que-posso-fazer` | Comparar estoque e ingredientes das receitas |
 

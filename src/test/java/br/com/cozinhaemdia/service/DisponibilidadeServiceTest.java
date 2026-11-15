@@ -80,14 +80,48 @@ class DisponibilidadeServiceTest {
     }
 
     @Test
-    void unidadeDiferenteNaoEhConsideradaComoEstoque() {
+    void unidadeIncompativelNaoEhConsideradaComoEstoque() {
         Receita mingau = receita(10L, "Mingau", item(leite, 300, "ml"));
-        cenario(List.of(mingau), estoque(leite, 1, "l"));
+        cenario(List.of(mingau), estoque(leite, 1, "unidade"));
 
         AnaliseReceita analise = service.analisar(USUARIO_ID).get(0);
 
         assertEquals(StatusDisponibilidade.INDISPONIVEL, analise.getStatus());
         assertEquals(300, analise.getFaltantes().get(0).getQuantidadeFaltante(), 0.0001);
+    }
+
+    @Test
+    void estoqueEmUnidadeMaiorEhConvertidoParaAUnidadeDaReceita() {
+        Receita mingau = receita(10L, "Mingau", item(leite, 300, "ml"));
+        Receita bolo = receita(11L, "Bolo", item(farinha, 500, "g"));
+        cenario(List.of(mingau, bolo), estoque(leite, 1, "l"), estoque(farinha, 1, "kg"));
+
+        List<AnaliseReceita> analises = service.analisar(USUARIO_ID);
+
+        assertEquals(2, analises.size());
+        assertTrue(analises.stream().allMatch(a -> a.getStatus() == StatusDisponibilidade.DISPONIVEL));
+    }
+
+    @Test
+    void estoqueConvertidoInsuficienteInformaOQueFaltaNaUnidadeDaReceita() {
+        Receita bolo = receita(10L, "Bolo", item(farinha, 1500, "g"));
+        cenario(List.of(bolo), estoque(farinha, 1, "kg"));
+
+        AnaliseReceita analise = service.analisar(USUARIO_ID).get(0);
+
+        assertEquals(StatusDisponibilidade.PARCIAL, analise.getStatus());
+        ItemFaltante faltante = analise.getFaltantes().get(0);
+        assertEquals(500, faltante.getQuantidadeFaltante(), 0.0001);
+        assertEquals(1000, faltante.getQuantidadeDisponivel(), 0.0001);
+        assertEquals("g", faltante.getUnidade());
+    }
+
+    @Test
+    void receitaEmUnidadeMaiorUsaEstoqueEmUnidadeMenor() {
+        Receita feijoada = receita(10L, "Feijoada", item(farinha, 1, "kg"));
+        cenario(List.of(feijoada), estoque(farinha, 1200, "g"));
+
+        assertEquals(StatusDisponibilidade.DISPONIVEL, service.analisar(USUARIO_ID).get(0).getStatus());
     }
 
     @Test

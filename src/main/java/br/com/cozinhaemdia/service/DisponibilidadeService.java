@@ -22,8 +22,10 @@ public class DisponibilidadeService {
             for (ReceitaIngrediente requerido : itens) {
                 Despensa disponivel = estoque.get(requerido.getIngrediente().getId());
                 double qtdDisponivel = 0;
-                if (disponivel != null && disponivel.getUnidade().equalsIgnoreCase(requerido.getUnidade())) {
-                    qtdDisponivel = Math.max(0, disponivel.getQuantidade());
+                if (disponivel != null) {
+                    // Converte o estoque para a unidade da receita (por exemplo, kg para g), quando houver equivalência.
+                    qtdDisponivel = ConversorUnidades.converter(disponivel.getQuantidade(), disponivel.getUnidade(), requerido.getUnidade())
+                            .map(valor -> Math.max(0, valor)).orElse(0.0);
                     if (qtdDisponivel > 0) itensComEstoque++;
                 }
                 if (qtdDisponivel + 0.000001 >= requerido.getQuantidade()) itensOk++;

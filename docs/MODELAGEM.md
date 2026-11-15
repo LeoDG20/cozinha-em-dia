@@ -66,9 +66,9 @@ erDiagram
 1. O e-mail é único e a senha é armazenada como hash, não em texto puro.
 2. As páginas de receitas e despensa trabalham somente com dados associados ao usuário autenticado.
 3. Quantidades precisam ser maiores que zero.
-4. Ao adicionar novamente um ingrediente que já está na despensa com a mesma unidade, a quantidade é somada. Se a unidade for diferente, o sistema pede para remover e recadastrar o item para evitar misturar unidades.
+4. Ao adicionar novamente um ingrediente que já está na despensa, a quantidade é somada. Se a unidade informada for da mesma grandeza da cadastrada (por exemplo, `kg` e `g`), o valor é convertido para a unidade do item. Se for incompatível (por exemplo, `ml` e `g`), o sistema recusa a operação. O item também pode ser corrigido diretamente, com nova quantidade e nova unidade.
 5. Uma receita fica **disponível** quando há quantidade suficiente de todos os seus ingredientes; **parcial** quando há algum estoque correspondente, mas ainda falta quantidade ou ingrediente; e **indisponível** quando nenhum item requerido tem estoque correspondente suficiente para avançar.
-6. A comparação exige a mesma unidade para o ingrediente nas duas tabelas. Conversões como `kg` ↔ `g` ficam fora deste protótipo.
+6. A comparação converte o estoque para a unidade da receita quando as duas pertencem à mesma grandeza: massa (`mg`, `g`, `kg`) ou volume (`cl`, `ml`, `l`). Unidades como `unidade`, `dente`, `colher` e `xícara` não têm equivalência fixa e só são comparadas com elas mesmas.
 
 ## Por que existem duas tabelas associativas?
 

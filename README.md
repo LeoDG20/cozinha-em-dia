@@ -15,11 +15,11 @@ Aplicação web desenvolvida como trabalho acadêmico para o cadastro de receita
 
 - Conta de usuário: cadastro, login e logout, com páginas protegidas por Spring Security. As senhas são armazenadas com BCrypt e os formulários possuem proteção contra CSRF.
 - Receitas: listagem, visualização, cadastro, edição e exclusão, com tempo de preparo, porções, ingredientes, quantidades, unidades e modo de preparo.
-- Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes e remoção.
+- Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes (com conversão de unidades), edição da quantidade e da unidade de cada item e remoção.
 - Comparação: classificação das receitas em disponíveis, parciais ou indisponíveis, com a quantidade que falta de cada ingrediente.
 - Dados de demonstração: seis receitas, vinte ingredientes e uma despensa inicial, criados na primeira execução.
 
-A comparação considera quantidade e unidade. Nesta versão não há conversão automática entre unidades (por exemplo, de `kg` para `g`), de modo que receita e despensa devem usar a mesma unidade para cada ingrediente.
+A comparação considera quantidade e unidade, com conversão automática entre unidades da mesma grandeza: massa (`mg`, `g` e `kg`) e volume (`cl`, `ml` e `l`). Assim, 1 `kg` na despensa atende uma receita que pede 500 `g`, e vice-versa. Unidades sem equivalência fixa (`unidade`, `dente`, `colher` e `xícara`) só são comparadas com elas mesmas. A regra está em `service/ConversorUnidades.java`.
 
 ## Tecnologias
 
@@ -240,4 +240,4 @@ scripts/        script de preparação (PowerShell) e código do lançador
 
 - O escopo não inclui geração de receitas por inteligência artificial, integração com supermercados, informações nutricionais, controle de validade, avaliações ou serviços externos.
 - A interface é um protótipo funcional e não uma versão de produção.
-- Uma versão de produção exigiria validações adicionais, ampliação dos testes, tratamento mais completo de erros, conversão de unidades e o uso de migrações de banco (por exemplo, Flyway) no lugar de `ddl-auto=update`.
+- Uma versão de produção exigiria validações adicionais, ampliação dos testes, tratamento mais completo de erros, conversão entre medidas caseiras (colher e xícara) e o uso de migrações de banco (por exemplo, Flyway) no lugar de `ddl-auto=update`.

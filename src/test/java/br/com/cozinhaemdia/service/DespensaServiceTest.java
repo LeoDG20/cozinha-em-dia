@@ -106,16 +106,61 @@ class DespensaServiceTest {
     }
 
     @Test
-    void adicionarRecusaUnidadeDiferenteDaJaCadastrada() {
+    void adicionarConverteParaAUnidadeJaCadastradaAoSomar() {
+        Despensa existente = new Despensa(usuario, farinha, 200.0, "g");
+        when(ingredientes.findByNomeIgnoreCase("Farinha")).thenReturn(Optional.of(farinha));
+        when(despensa.findByUsuarioIdAndIngredienteId(USUARIO_ID, INGREDIENTE_ID)).thenReturn(Optional.of(existente));
+
+        service.adicionar(usuario, "Farinha", 1.5, "kg");
+
+        assertEquals(1700.0, existente.getQuantidade(), 0.0001);
+        assertEquals("g", existente.getUnidade());
+        verify(despensa).save(existente);
+    }
+
+    @Test
+    void adicionarRecusaUnidadeIncompativelComAJaCadastrada() {
         Despensa existente = new Despensa(usuario, farinha, 200.0, "g");
         when(ingredientes.findByNomeIgnoreCase("Farinha")).thenReturn(Optional.of(farinha));
         when(despensa.findByUsuarioIdAndIngredienteId(USUARIO_ID, INGREDIENTE_ID)).thenReturn(Optional.of(existente));
 
         IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,
-                () -> service.adicionar(usuario, "Farinha", 1.0, "kg"));
+                () -> service.adicionar(usuario, "Farinha", 1.0, "ml"));
 
         assertTrue(erro.getMessage().contains("'g'"));
         assertEquals(200.0, existente.getQuantidade(), 0.0001);
+        verify(despensa, never()).save(any(Despensa.class));
+    }
+
+    @Test
+    void atualizarSubstituiQuantidadeEUnidadeDoItem() {
+        Despensa item = new Despensa(usuario, farinha, 200.0, "g");
+        when(despensa.findByIdAndUsuarioId(10L, USUARIO_ID)).thenReturn(Optional.of(item));
+
+        service.atualizar(10L, USUARIO_ID, 2.5, " KG ");
+
+        assertEquals(2.5, item.getQuantidade(), 0.0001);
+        assertEquals("kg", item.getUnidade());
+        verify(despensa).save(item);
+    }
+
+    @Test
+    void atualizarValidaQuantidadeEUnidade() {
+        assertThrows(IllegalArgumentException.class, () -> service.atualizar(10L, USUARIO_ID, null, "g"));
+        assertThrows(IllegalArgumentException.class, () -> service.atualizar(10L, USUARIO_ID, 0.0, "g"));
+        assertThrows(IllegalArgumentException.class, () -> service.atualizar(10L, USUARIO_ID, 1.0, " "));
+
+        verify(despensa, never()).save(any(Despensa.class));
+    }
+
+    @Test
+    void atualizarItemDeOutroUsuarioFalha() {
+        when(despensa.findByIdAndUsuarioId(10L, 99L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,
+                () -> service.atualizar(10L, 99L, 1.0, "g"));
+
+        assertEquals("Item não encontrado na sua despensa.", erro.getMessage());
         verify(despensa, never()).save(any(Despensa.class));
     }
 
