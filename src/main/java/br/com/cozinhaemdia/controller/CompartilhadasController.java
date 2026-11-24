@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /** Receitas que outros usuários compartilharam com a pessoa autenticada. */
@@ -25,9 +26,10 @@ public class CompartilhadasController {
 
     /** Desfaz um compartilhamento: o destinatário dispensa a receita ou o dono deixa de compartilhá-la. */
     @PostMapping("/compartilhamentos/{id}/remover")
-    public String remover(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, RedirectAttributes flash) {
+    public String remover(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth,
+                          @RequestParam(required = false) Long receita, RedirectAttributes flash) {
         if (compartilhamentos.remover(id, auth.getId())) flash.addFlashAttribute("sucesso", "Compartilhamento removido.");
         else flash.addFlashAttribute("erro", "Compartilhamento não encontrado.");
-        return "redirect:/compartilhadas";
+        return receita != null ? "redirect:/receitas/" + receita : "redirect:/compartilhadas";
     }
 }

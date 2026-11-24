@@ -7,4 +7,5 @@ public interface ReceitaRepository extends JpaRepository<Receita, Long> {
     List<Receita> findAllByUsuarioIdOrderByNomeAsc(Long usuarioId);
     Optional<Receita> findByIdAndUsuarioId(Long id, Long usuarioId);
     long countByUsuarioId(Long usuarioId);
+    boolean existsByUsuarioIdAndNomeIgnoreCase(Long usuarioId, String nome);
 }

@@ -51,7 +51,7 @@ class CompartilhamentoServiceTest {
         receitaIngredientes = mock(ReceitaIngredienteRepository.class);
         usuarios = mock(UsuarioRepository.class);
         arquivos = mock(ArmazenamentoArquivos.class);
-        service = new CompartilhamentoService(compartilhamentos, receitas, receitaIngredientes, usuarios, arquivos);
+        service = new CompartilhamentoService(compartilhamentos, receitas, usuarios, new CopiaReceitaService(receitas, receitaIngredientes, arquivos));
 
         ana = usuario(1L, "Ana", "ana@teste.com");
         bruno = usuario(2L, "Bruno", "bruno@teste.com");

@@ -1,19 +1,17 @@
 package br.com.cozinhaemdia.service;
 
 import br.com.cozinhaemdia.model.Compartilhamento;
-import br.com.cozinhaemdia.model.EtapaReceita;
 import br.com.cozinhaemdia.model.Receita;
-import br.com.cozinhaemdia.model.ReceitaIngrediente;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.repository.CompartilhamentoRepository;
-import br.com.cozinhaemdia.repository.ReceitaIngredienteRepository;
 import br.com.cozinhaemdia.repository.ReceitaRepository;
 import br.com.cozinhaemdia.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /** Compartilhamento de receitas entre usuários: envio por e-mail, consulta pelo destinatário e cópia para a conta dele. */
@@ -21,15 +19,13 @@ import java.util.Optional;
 public class CompartilhamentoService {
     private final CompartilhamentoRepository compartilhamentos;
     private final ReceitaRepository receitas;
-    private final ReceitaIngredienteRepository receitaIngredientes;
     private final UsuarioRepository usuarios;
-    private final ArmazenamentoArquivos arquivos;
+    private final CopiaReceitaService copias;
 
     public CompartilhamentoService(CompartilhamentoRepository compartilhamentos, ReceitaRepository receitas,
-                                   ReceitaIngredienteRepository receitaIngredientes, UsuarioRepository usuarios,
-                                   ArmazenamentoArquivos arquivos) {
+                                   UsuarioRepository usuarios, CopiaReceitaService copias) {
         this.compartilhamentos = compartilhamentos; this.receitas = receitas;
-        this.receitaIngredientes = receitaIngredientes; this.usuarios = usuarios; this.arquivos = arquivos;
+        this.usuarios = usuarios; this.copias = copias;
     }
 
     /** Compartilha a receita com o usuário que tem o e-mail informado. Só o dono pode compartilhar. */
@@ -55,6 +51,15 @@ public class CompartilhamentoService {
     @Transactional(readOnly = true)
     public List<Compartilhamento> enviadasDa(Long receitaId) {
         return compartilhamentos.findAllByReceitaIdOrderByCriadoEmDesc(receitaId);
+    }
+
+    /** Nomes das pessoas com quem o usuário compartilhou cada uma de suas receitas, indexados pelo id da receita. */
+    @Transactional(readOnly = true)
+    public Map<Long, List<String>> nomesDosDestinatarios(Long donoId) {
+        Map<Long, List<String>> mapa = new LinkedHashMap<>();
+        for (Compartilhamento c : compartilhamentos.findAllByReceitaUsuarioIdOrderByDestinoNomeAsc(donoId))
+            mapa.computeIfAbsent(c.getReceita().getId(), k -> new java.util.ArrayList<>()).add(c.getDestino().getNome());
+        return mapa;
     }
 
     @Transactional(readOnly = true)
@@ -89,29 +94,7 @@ public class CompartilhamentoService {
         Compartilhamento c = compartilhamentos.findByReceitaIdAndDestinoId(receitaId, destinatario.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Receita não encontrada entre as compartilhadas com você."));
         if (c.isCopiada()) throw new IllegalArgumentException("Você já salvou esta receita na sua conta.");
-        Receita origem = c.getReceita();
-
-        Receita copia = new Receita();
-        copia.setUsuario(destinatario);
-        copia.setNome(origem.getNome());
-        copia.setDescricao(origem.getDescricao());
-        copia.setModoPreparo(origem.getModoPreparo());
-        copia.setTempoPreparoMin(origem.getTempoPreparoMin());
-        copia.setPorcoes(origem.getPorcoes());
-        copia.setImagemUrl(origem.getImagemUrl());
-        copia.setImagemArquivo(origem.getImagemArquivo() == null ? null : arquivos.copiar(origem.getImagemArquivo()));
-        copia.setVideoUrl(origem.getVideoUrl());
-        copia.setVideoArquivo(origem.getVideoArquivo() == null ? null : arquivos.copiar(origem.getVideoArquivo()));
-        for (EtapaReceita etapa : origem.getEtapas()) {
-            String foto = etapa.getImagemArquivo() == null ? null : arquivos.copiar(etapa.getImagemArquivo());
-            copia.getEtapas().add(new EtapaReceita(copia, etapa.getOrdem(), etapa.getDescricao(), foto));
-        }
-        Receita salva = receitas.save(copia);
-
-        List<ReceitaIngrediente> itens = new ArrayList<>();
-        for (ReceitaIngrediente item : receitaIngredientes.findAllByReceitaIdOrderByIdAsc(origem.getId()))
-            itens.add(new ReceitaIngrediente(salva, item.getIngrediente(), item.getQuantidade(), item.getUnidade()));
-        receitaIngredientes.saveAll(itens);
+        Receita salva = copias.copiar(c.getReceita(), destinatario);
 
         c.setCopiada(true);
         compartilhamentos.save(c);

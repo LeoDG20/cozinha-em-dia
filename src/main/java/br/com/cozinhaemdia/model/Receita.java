@@ -29,6 +29,8 @@ public class Receita {
     private String videoUrl;
     @Column(name = "video_arquivo", length = 80)
     private String videoArquivo;
+    @Column(name = "origem_nome", length = 120)
+    private String origemNome;
     @OneToMany(mappedBy = "receita", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private List<ReceitaIngrediente> ingredientes = new ArrayList<>();
@@ -60,6 +62,9 @@ public class Receita {
     public void setImagemUrl(String imagemUrl) { this.imagemUrl = imagemUrl; }
     public String getVideoUrl() { return videoUrl; }
     public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
+    public String getOrigemNome() { return origemNome; }
+    public void setOrigemNome(String origemNome) { this.origemNome = origemNome; }
+    @Transient public boolean isAdaptada() { return origemNome != null && !origemNome.isBlank(); }
     public String getVideoArquivo() { return videoArquivo; }
     public void setVideoArquivo(String videoArquivo) { this.videoArquivo = videoArquivo; }
     @Transient public boolean isTemImagem() { return (imagemArquivo != null && !imagemArquivo.isBlank()) || (imagemUrl != null && !imagemUrl.isBlank()); }

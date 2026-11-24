@@ -10,6 +10,7 @@ public interface CompartilhamentoRepository extends JpaRepository<Compartilhamen
     List<Compartilhamento> findAllByDestinoIdOrderByCriadoEmDesc(Long destinoId);
     List<Compartilhamento> findAllByReceitaIdOrderByCriadoEmDesc(Long receitaId);
     Optional<Compartilhamento> findByReceitaIdAndDestinoId(Long receitaId, Long destinoId);
+    List<Compartilhamento> findAllByReceitaUsuarioIdOrderByDestinoNomeAsc(Long donoId);
     boolean existsByReceitaIdAndDestinoId(Long receitaId, Long destinoId);
     long countByDestinoIdAndCopiadaFalse(Long destinoId);
 }

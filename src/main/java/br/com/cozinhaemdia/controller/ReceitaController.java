@@ -8,6 +8,7 @@ import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.repository.UsuarioRepository;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.CompartilhamentoService;
+import br.com.cozinhaemdia.service.CopiaReceitaService;
 import br.com.cozinhaemdia.service.CorretorIngredientes;
 import br.com.cozinhaemdia.service.DisponibilidadeService;
 import br.com.cozinhaemdia.service.DisponibilidadeService.AnaliseReceita;
@@ -52,11 +53,13 @@ public class ReceitaController {
     private final CompartilhamentoService compartilhamentos;
     private final CorretorIngredientes corretor;
     private final UsuarioRepository usuarios;
+    private final CopiaReceitaService copias;
 
     public ReceitaController(ReceitaService receitaService, RegistroReceitaService registro, DisponibilidadeService disponibilidade,
-                             CompartilhamentoService compartilhamentos, CorretorIngredientes corretor, UsuarioRepository usuarios) {
+                             CompartilhamentoService compartilhamentos, CorretorIngredientes corretor, UsuarioRepository usuarios,
+                             CopiaReceitaService copias) {
         this.receitaService = receitaService; this.registro = registro; this.disponibilidade = disponibilidade;
-        this.compartilhamentos = compartilhamentos; this.corretor = corretor; this.usuarios = usuarios;
+        this.compartilhamentos = compartilhamentos; this.corretor = corretor; this.usuarios = usuarios; this.copias = copias;
     }
 
     @GetMapping("/receitas")
@@ -74,9 +77,10 @@ public class ReceitaController {
         }
         model.addAttribute("analises", exibidas);
         model.addAttribute("total", todas.size());
+        model.addAttribute("compartilhadoCom", compartilhamentos.nomesDosDestinatarios(auth.getId()));
         model.addAttribute("q", consulta);
         model.addAttribute("situacao", filtro == null ? "" : situacao.toLowerCase());
-        model.addAttribute("sugestao", exibidas.isEmpty() && !consulta.isEmpty() ? sugestaoDeBusca(consulta) : null);
+        model.addAttribute("sugestoes", exibidas.isEmpty() && !consulta.isEmpty() ? sugestoesDeBusca(consulta, todas) : List.of());
         return "receitas";
     }
 
@@ -196,6 +200,22 @@ public class ReceitaController {
         }
     }
 
+    /** Cria uma versão adaptada (cópia completa com outro nome) para o usuário editar sem alterar a receita original. */
+    @PostMapping("/receitas/{id}/adaptar")
+    public String adaptar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth,
+                          @RequestParam(required = false) String nome, RedirectAttributes flash) {
+        Receita origem = compartilhamentos.visivelPara(id, auth.getId()).orElse(null);
+        if (origem == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
+        try {
+            Receita versao = copias.adaptar(origem, usuario(auth), nome);
+            flash.addFlashAttribute("sucesso", "Versão criada a partir de \"" + origem.getNome() + "\". Altere o que desejar e salve.");
+            return "redirect:/receitas/" + versao.getId() + "/editar";
+        } catch (IllegalArgumentException ex) {
+            flash.addFlashAttribute("erro", ex.getMessage());
+            return "redirect:/receitas/" + id;
+        }
+    }
+
     private void prepararFormulario(Model model, Receita receita, Formulario form, List<LinhaIngrediente> ingredientes, List<LinhaEtapa> etapas) {
         model.addAttribute("edicao", receita != null);
         model.addAttribute("receita", receita);
@@ -275,10 +295,16 @@ public class ReceitaController {
         return false;
     }
 
-    /** Quando a busca não encontra nada, sugere a grafia mais provável do termo digitado. */
-    private String sugestaoDeBusca(String consulta) {
+    /** Quando a busca não encontra nada, sugere grafias prováveis: nomes de receitas e de ingredientes parecidos com o termo. */
+    private List<String> sugestoesDeBusca(String consulta, List<AnaliseReceita> todas) {
+        List<String> candidatos = new ArrayList<>();
+        for (AnaliseReceita a : todas) candidatos.add(a.getReceita().getNome());
+        candidatos.addAll(corretor.nomesConhecidos());
+        List<String> sugestoes = new ArrayList<>();
         CorretorIngredientes.Correcao c = corretor.corrigir(consulta);
-        return c.alterado() ? c.corrigido() : null;
+        if (c.alterado()) sugestoes.add(c.corrigido());
+        for (String nome : CorretorIngredientes.maisParecidos(consulta, candidatos, 4)) if (!sugestoes.contains(nome)) sugestoes.add(nome);
+        return sugestoes.subList(0, Math.min(4, sugestoes.size()));
     }
 
     private static StatusDisponibilidade statusDe(String situacao) {
