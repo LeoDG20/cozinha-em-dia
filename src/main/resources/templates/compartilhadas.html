@@ -1,42 +1,38 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Compartilhadas · Cozinha em Dia</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}"><link rel="stylesheet" th:href="@{/css/tema.css}"><script th:src="@{/js/app.js}" defer></script>
-</head>
+<head><th:block th:replace="~{fragments/head :: head('Compartilhadas comigo')}"></th:block></head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
-<main class="page narrow-page">
-  <div class="page-heading">
-    <p class="eyebrow">DE AMIGOS E FAMÍLIA</p>
-    <h1>Receitas compartilhadas comigo</h1>
-    <p class="muted">Veja o que outras pessoas enviaram e salve uma cópia para editar à vontade.</p>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
+<main class="page estreita">
+  <div class="page-head">
+    <div>
+      <h1>Compartilhadas comigo</h1>
+      <p class="muted">Receitas que outras pessoas enviaram. Salve uma cópia para editar, ou use “Adaptar” na página da receita para criar sua própria versão.</p>
+    </div>
   </div>
-  <div class="alert success" th:if="${sucesso}" th:text="${sucesso}"></div>
-  <div class="alert error" th:if="${erro}" th:text="${erro}"></div>
+  <div class="alerta sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
+  <div class="alerta erro" th:if="${erro}" th:text="${erro}"></div>
 
   <article class="recebida" th:each="c : ${recebidas}">
-    <a class="capa" th:classappend="${'tom-' + c.receita.tom}" th:href="@{/receitas/{id}(id=${c.receita.id})}">
+    <a class="miniatura" th:href="@{/receitas/{id}(id=${c.receita.id})}" tabindex="-1" aria-hidden="true">
       <img th:if="${c.receita.capaUrl != null}" th:src="${c.receita.capaUrl}" alt="" loading="lazy">
-      <span class="capa-emoji" th:if="${c.receita.capaUrl == null}" th:text="${c.receita.emoji}">🍽️</span>
     </a>
     <div>
-      <h3 style="margin-bottom:2px"><a th:href="@{/receitas/{id}(id=${c.receita.id})}" th:text="${c.receita.nome}">Receita</a></h3>
-      <p class="de">de <b th:text="${c.receita.usuario.nome}">Nome</b> · <span th:text="${#temporals.format(c.criadoEm, 'dd/MM/yyyy')}">01/01/2025</span> <span class="selo novo" th:if="${!c.copiada}">nova</span><span class="selo" th:if="${c.copiada}">salva na sua conta</span></p>
+      <h3><a th:href="@{/receitas/{id}(id=${c.receita.id})}" th:text="${c.receita.nome}">Receita</a></h3>
+      <p class="de">De <b th:text="${c.receita.usuario.nome}">Nome</b> em <span th:text="${#temporals.format(c.criadoEm, 'dd/MM/yyyy')}">01/01/2025</span> <span class="etiqueta" th:if="${!c.copiada}">nova</span><span class="etiqueta neutra" th:if="${c.copiada}">salva na sua conta</span></p>
       <blockquote th:if="${c.mensagem != null}" th:text="${c.mensagem}">Mensagem</blockquote>
     </div>
     <div class="acoes">
-      <a class="btn btn-outline btn-small" th:href="@{/receitas/{id}(id=${c.receita.id})}">Ver receita</a>
-      <form th:if="${!c.copiada}" th:action="@{/receitas/{id}/salvar-copia(id=${c.receita.id})}" method="post"><button class="btn btn-primary btn-small" type="submit">Salvar na minha conta</button></form>
+      <a class="btn btn-secondary btn-sm" th:href="@{/receitas/{id}(id=${c.receita.id})}">Ver receita</a>
+      <form th:if="${!c.copiada}" th:action="@{/receitas/{id}/salvar-copia(id=${c.receita.id})}" method="post"><button class="btn btn-primary btn-sm btn-block" type="submit">Salvar na minha conta</button></form>
       <form th:action="@{/compartilhamentos/{id}/remover(id=${c.id})}" method="post" data-confirmar="Remover esta receita da sua lista de compartilhadas?"><button class="link-botao" type="submit">Remover da lista</button></form>
     </div>
   </article>
 
-  <div class="empty-state" th:if="${#lists.isEmpty(recebidas)}">
-    <span class="empty-emoji">⇪</span><h2>Nada por aqui ainda</h2>
-    <p>Quando alguém compartilhar uma receita com o seu e-mail, ela aparecerá nesta lista. Você também pode compartilhar as suas pela página de cada receita.</p>
-    <a class="btn btn-outline" th:href="@{/receitas}">Ir para minhas receitas</a>
+  <div class="vazio" th:if="${#lists.isEmpty(recebidas)}">
+    <h2>Nenhuma receita compartilhada</h2>
+    <p>Quando alguém compartilhar uma receita com o seu e-mail, ela aparece aqui. Para enviar uma das suas, abra a receita e use “Compartilhar”.</p>
+    <a class="btn btn-secondary" th:href="@{/receitas}">Ir para minhas receitas</a>
   </div>
 </main>
 </body>

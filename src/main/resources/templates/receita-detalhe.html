@@ -1,49 +1,61 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title th:text="${receita.nome} + ' · Cozinha em Dia'">Receita · Cozinha em Dia</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}"><link rel="stylesheet" th:href="@{/css/tema.css}"><script th:src="@{/js/app.js}" defer></script>
-</head>
+<head><th:block th:replace="~{fragments/head :: head(${receita.nome})}"></th:block></head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
 <main class="page">
-  <a class="back-link" th:href="@{${dono ? '/receitas' : '/compartilhadas'}}" th:text="${dono ? '← Voltar às receitas' : '← Voltar às compartilhadas'}">← Voltar</a>
-  <div class="alert success" th:if="${sucesso}" th:text="${sucesso}"></div>
-  <div class="alert aviso" th:if="${avisos != null}"><strong>Corrigimos automaticamente:</strong><ul><li th:each="aviso : ${avisos}" th:text="${aviso}"></li></ul></div>
-  <div class="alert error" th:if="${erro}" th:text="${erro}"></div>
+  <a class="voltar" th:href="@{${dono ? '/receitas' : '/compartilhadas'}}"><svg class="i"><use href="#i-voltar"/></svg><span th:text="${dono ? 'Receitas' : 'Compartilhadas comigo'}">Receitas</span></a>
+  <div class="alerta sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
+  <div class="alerta aviso" th:if="${avisos != null}"><strong>Corrigimos automaticamente:</strong><ul><li th:each="aviso : ${avisos}" th:text="${aviso}"></li></ul></div>
+  <div class="alerta erro" th:if="${erro}" th:text="${erro}"></div>
 
-  <section class="receita-capa">
-    <div class="capa" th:classappend="${'tom-' + receita.tom}">
+  <section class="receita-topo">
+    <div class="receita-foto">
       <img th:if="${receita.capaUrl != null}" th:src="${receita.capaUrl}" th:alt="${'Foto de ' + receita.nome}">
-      <span class="capa-emoji" th:if="${receita.capaUrl == null}" th:text="${receita.emoji}">🍽️</span>
+      <span class="sem-foto" th:if="${receita.capaUrl == null}"><svg class="i"><use href="#i-prato"/></svg></span>
     </div>
     <div class="receita-info">
-      <p class="eyebrow" th:text="${dono ? 'SUA RECEITA' : 'COMPARTILHADA POR ' + #strings.toUpperCase(receita.usuario.nome)}">RECEITA</p>
+      <p class="sobrelinha" th:text="${dono ? 'Minha receita' : 'Compartilhada por ' + receita.usuario.nome}">Receita</p>
       <h1 th:text="${receita.nome}">Nome da receita</h1>
+      <p class="origem" th:if="${receita.adaptada}" th:text="${'Versão adaptada de “' + receita.origemNome + '”'}">Adaptada de</p>
       <p class="muted" th:if="${receita.descricao != null && !receita.descricao.isBlank()}" th:text="${receita.descricao}">Descrição</p>
-      <div class="meta-pills">
-        <span>◷ <b th:text="${receita.tempoPreparoMin != null ? receita.tempoPreparoMin : '-'}">25</b> min</span>
-        <span>♧ <b th:text="${receita.porcoes != null ? receita.porcoes : '-'}">2</b> porções</span>
-        <span th:text="${itens.size() + ' ingredientes'}">4 ingredientes</span>
+
+      <div class="receita-meta">
+        <div><span>Preparo</span><b th:text="${receita.tempoPreparoMin != null ? receita.tempoPreparoMin + ' min' : '-'}">25 min</b></div>
+        <div><span>Rende</span><b th:text="${receita.porcoes != null ? receita.porcoes + ' porções' : '-'}">2 porções</b></div>
+        <div><span>Ingredientes</span><b th:text="${itens.size()}">4</b></div>
       </div>
-      <div class="status-banner" th:classappend="${analise.status.classe}">
-        <span th:text="${analise.status.classe == 'available' ? '✓' : (analise.status.classe == 'partial' ? '◒' : '＋')}">✓</span>
-        <span>
-          <span th:text="${analise.status.classe == 'available' ? 'Você tem tudo para preparar esta receita agora.' : (analise.status.classe == 'partial' ? 'Quase lá: faltam alguns ingredientes na sua despensa.' : 'Você ainda não tem os ingredientes principais na despensa.')}">Status</span>
-          <span class="faltam" th:if="${!#lists.isEmpty(analise.faltantes)}"><span class="missing-chip" th:each="f : ${analise.faltantes}"><span th:text="${f.nome}">Ovo</span><b th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(f.quantidadeFaltante) + ' ' + f.unidade}">2 un</b></span></span>
-        </span>
+
+      <div class="situacao-caixa" th:classappend="${analise.status.classe}">
+        <strong th:text="${analise.status.classe == 'available' ? 'Você tem tudo para preparar agora.' : (analise.status.classe == 'partial' ? 'Faltam alguns ingredientes na sua despensa.' : 'Faltam os ingredientes principais na sua despensa.')}">Situação</strong>
+        <span class="muted" th:if="${analise.status.classe == 'available'}">As quantidades da despensa cobrem toda a receita.</span>
+        <div class="faltam" th:if="${!#lists.isEmpty(analise.faltantes)}"><span th:each="f : ${analise.faltantes}"><span th:text="${f.nome}">Ovo</span><b th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(f.quantidadeFaltante) + ' ' + f.unidade}">2 un</b></span></div>
       </div>
-      <div class="acoes-receita" th:if="${dono}">
-        <a class="btn btn-outline btn-small" th:href="@{/receitas/{id}/editar(id=${receita.id})}">✎ Editar</a>
-        <a class="btn btn-outline btn-small" href="#compartilhar">⇪ Compartilhar</a>
-        <form th:action="@{/receitas/{id}/excluir(id=${receita.id})}" method="post" data-confirmar="Excluir esta receita? Fotos e vídeos enviados também serão apagados."><button class="btn btn-outline btn-small" type="submit">Excluir</button></form>
+
+      <div class="compartilhada-com" th:if="${dono && !#lists.isEmpty(destinatarios)}">
+        <span>Compartilhada com</span>
+        <span class="pessoa" th:each="c : ${destinatarios}" th:title="${c.destino.email}"><span class="avatar" th:text="${#strings.substring(c.destino.nome,0,1).toUpperCase()}">A</span><span th:text="${c.destino.nome}">Ana</span></span>
       </div>
-      <div class="acoes-receita" th:if="${!dono && recebido != null}">
-        <form th:if="${!recebido.copiada}" th:action="@{/receitas/{id}/salvar-copia(id=${receita.id})}" method="post"><button class="btn btn-primary btn-small" type="submit">Salvar na minha conta</button></form>
-        <span class="selo" th:if="${recebido.copiada}">Já salva na sua conta</span>
-        <form th:action="@{/compartilhamentos/{id}/remover(id=${recebido.id})}" method="post" data-confirmar="Remover esta receita da sua lista de compartilhadas?"><button class="btn btn-outline btn-small" type="submit">Remover da lista</button></form>
+
+      <div class="acoes-receita">
+        <a class="btn btn-secondary btn-sm" th:if="${dono}" th:href="@{/receitas/{id}/editar(id=${receita.id})}"><svg class="i"><use href="#i-lapis"/></svg>Editar</a>
+        <a class="btn btn-secondary btn-sm" th:if="${dono}" href="#compartilhar"><svg class="i"><use href="#i-enviar"/></svg>Compartilhar</a>
+        <form th:if="${!dono && recebido != null && !recebido.copiada}" th:action="@{/receitas/{id}/salvar-copia(id=${receita.id})}" method="post"><button class="btn btn-primary btn-sm" type="submit">Salvar na minha conta</button></form>
+        <span class="etiqueta" th:if="${!dono && recebido != null && recebido.copiada}">Já salva na sua conta</span>
+        <button class="btn btn-secondary btn-sm" type="button" data-imprimir><svg class="i"><use href="#i-imprimir"/></svg>Imprimir</button>
+        <form th:if="${dono}" th:action="@{/receitas/{id}/excluir(id=${receita.id})}" method="post" data-confirmar="Excluir esta receita? Fotos e vídeos enviados também serão apagados."><button class="btn btn-danger btn-sm" type="submit"><svg class="i"><use href="#i-lixo"/></svg>Excluir</button></form>
+        <form th:if="${!dono && recebido != null}" th:action="@{/compartilhamentos/{id}/remover(id=${recebido.id})}" method="post" data-confirmar="Remover esta receita da sua lista de compartilhadas?"><button class="btn btn-secondary btn-sm" type="submit">Remover da lista</button></form>
       </div>
+
+      <details class="adaptar">
+        <summary><svg class="i"><use href="#i-copia"/></svg>Adaptar esta receita</summary>
+        <form class="adaptar-corpo" th:action="@{/receitas/{id}/adaptar(id=${receita.id})}" method="post">
+          <p>Cria uma cópia completa (ingredientes, etapas, fotos e vídeo) na sua conta, com o nome que você escolher. Depois é só alterar o que quiser; a receita original não muda.</p>
+          <label>Nome da nova versão
+            <span class="linha"><input type="text" name="nome" maxlength="120" required th:value="${receita.nome + ' (adaptada)'}"><button class="btn btn-primary" type="submit">Criar versão</button></span>
+          </label>
+        </form>
+      </details>
       <p class="nota-recebida" th:if="${!dono && recebido != null && recebido.mensagem != null}">“<span th:text="${recebido.mensagem}">Mensagem</span>” <b th:text="${'— ' + receita.usuario.nome}"></b></p>
     </div>
   </section>
@@ -52,24 +64,33 @@
     <div class="video-wrap" th:if="${receita.videoYoutubeId != null}">
       <iframe th:src="${receita.videoEmbedUrl}" title="Videoaula no YouTube" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
     </div>
-    <div class="video-wrap proprio" th:if="${receita.videoArquivo != null}">
+    <div class="video-wrap" th:if="${receita.videoArquivo != null}">
       <video controls preload="metadata" th:src="@{/midia/{nome}(nome=${receita.videoArquivo})}">Seu navegador não reproduz este vídeo.</video>
     </div>
   </section>
 
-  <div class="detail-columns">
-    <section class="panel">
-      <div class="section-heading"><h2>Ingredientes</h2><span class="count-pill" th:text="${itens.size()}">4</span></div>
-      <ul class="ingredient-checklist">
-        <li th:each="item : ${itens}" th:classappend="${#lists.contains(analise.faltantes.![nome], item.ingrediente.nome) ? 'falta' : ''}">
-          <span class="check-box"></span><span th:text="${item.ingrediente.nome}">Ingrediente</span>
-          <strong><span th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(item.quantidade)}">2</span> <span th:text="${item.unidade}">unidade</span></strong>
+  <div class="colunas-receita">
+    <section class="painel ingredientes" th:attr="data-base=${receita.porcoes != null ? receita.porcoes : 1}" data-escala>
+      <div class="painel-cab"><h2>Ingredientes</h2></div>
+      <div class="porcoes-controle no-print" th:if="${receita.porcoes != null}">
+        <span>Porções</span>
+        <span class="stepper"><button type="button" data-passo="-1" aria-label="Menos uma porção">−</button><output aria-live="polite" th:text="${receita.porcoes}">2</output><button type="button" data-passo="1" aria-label="Mais uma porção">+</button></span>
+        <button class="link-botao" type="button" data-original hidden>Voltar ao original</button>
+      </div>
+      <ul class="lista-ingredientes">
+        <li th:each="item : ${itens}">
+          <label>
+            <input type="checkbox">
+            <span class="nome-ing" th:text="${item.ingrediente.nome}">Ingrediente</span>
+          </label>
+          <span class="falta-tag" th:if="${#lists.contains(analise.faltantes.![nome], item.ingrediente.nome)}">falta</span>
+          <span class="qtd"><span th:attr="data-qtd=${item.quantidade}" th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(item.quantidade)}">2</span> <span th:text="${item.unidade}">unidade</span></span>
         </li>
       </ul>
-      <a class="text-link" th:href="@{/despensa}">Atualizar minha despensa →</a>
     </section>
-    <section class="panel">
-      <div class="section-heading"><h2>Modo de preparo</h2><span class="count-pill" th:text="${passos.size()}">3</span></div>
+
+    <section>
+      <h2 style="margin-bottom:16px">Modo de preparo</h2>
       <ol class="passos">
         <li class="passo" th:each="p : ${passos}">
           <span class="passo-num" th:text="${p.ordem}">1</span>
@@ -82,18 +103,19 @@
     </section>
   </div>
 
-  <section class="panel" id="compartilhar" th:if="${dono}" style="margin-top:22px">
-    <div class="section-heading"><h2>Compartilhar com outra pessoa</h2></div>
-    <p class="muted" style="margin-bottom:14px">Informe o e-mail de quem já tem conta no Cozinha em Dia. A pessoa poderá ver a receita e salvar uma cópia própria.</p>
+  <section class="painel compartilhar-painel" id="compartilhar" th:if="${dono}" style="margin-top:40px">
+    <div class="painel-cab"><h2>Compartilhar</h2></div>
+    <p class="muted" style="margin-bottom:14px">Informe o e-mail de quem já tem conta. A pessoa poderá ver a receita e salvar uma cópia própria.</p>
     <form class="compartilhar" th:action="@{/receitas/{id}/compartilhar(id=${receita.id})}" method="post">
       <input type="email" name="email" placeholder="email@exemplo.com" required aria-label="E-mail do destinatário">
       <textarea name="mensagem" maxlength="200" placeholder="Mensagem opcional (até 200 caracteres)" aria-label="Mensagem"></textarea>
       <button class="btn btn-primary" type="submit" style="justify-self:start">Compartilhar receita</button>
     </form>
+    <h3 style="margin-top:24px; font-size:15px" th:if="${!#lists.isEmpty(destinatarios)}">Gerenciar acesso</h3>
     <ul class="destinatarios" th:if="${!#lists.isEmpty(destinatarios)}">
       <li th:each="c : ${destinatarios}">
-        <span><b th:text="${c.destino.nome}">Nome</b> <span class="muted" th:text="${c.destino.email}">email</span> <span class="selo" th:if="${c.copiada}">salvou uma cópia</span></span>
-        <form th:action="@{/compartilhamentos/{id}/remover(id=${c.id})}" method="post" data-confirmar="Deixar de compartilhar com esta pessoa?"><button class="link-botao" type="submit">Deixar de compartilhar</button></form>
+        <span><b th:text="${c.destino.nome}">Nome</b> <span class="muted" th:text="${c.destino.email}">email</span> <span class="etiqueta" th:if="${c.copiada}">salvou uma cópia</span></span>
+        <form th:action="@{/compartilhamentos/{id}/remover(id=${c.id})}" method="post" data-confirmar="Deixar de compartilhar com esta pessoa?"><input type="hidden" name="receita" th:value="${receita.id}"><button class="link-botao perigo" type="submit">Deixar de compartilhar</button></form>
       </li>
     </ul>
   </section>

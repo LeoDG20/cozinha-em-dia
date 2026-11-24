@@ -1,11 +1,25 @@
-<header class="topbar" th:fragment="header">
-  <a class="brand" th:href="@{/}"><span class="brand-mark">✳</span><span>Cozinha em Dia<small>receitas & despensa</small></span></a>
-  <nav class="main-nav">
-    <a th:href="@{/}">Visão geral</a>
-    <a th:href="@{/receitas}">Receitas</a>
-    <a th:href="@{/compartilhadas}">Compartilhadas<span class="nav-badge" th:if="${novasCompartilhadas != null && novasCompartilhadas > 0}" th:text="${novasCompartilhadas}">1</span></a>
-    <a th:href="@{/despensa}">Minha despensa</a>
-    <a th:href="@{/o-que-posso-fazer}">O que posso fazer?</a>
-  </nav>
-  <div class="user-menu"><span class="avatar" th:text="${#strings.substring(#authentication.principal.nome,0,1).toUpperCase()}">C</span><span class="user-name" th:text="${#authentication.principal.nome}">Conta</span><form th:action="@{/logout}" method="post"><button class="logout" type="submit" title="Sair">↗</button></form></div>
-</header>
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="header">
+  <th:block th:replace="~{fragments/icones :: sprite}"></th:block>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" th:href="@{/}">Cozinha em Dia</a>
+      <nav class="main-nav" aria-label="Principal">
+        <a th:href="@{/}">Início</a>
+        <a th:href="@{/receitas}">Receitas</a>
+        <a th:href="@{/despensa}">Despensa</a>
+        <a th:href="@{/o-que-posso-fazer}">O que posso fazer</a>
+        <a th:href="@{/compartilhadas}">Compartilhadas<span class="nav-badge" th:if="${novasCompartilhadas != null && novasCompartilhadas > 0}" th:text="${novasCompartilhadas}">1</span></a>
+      </nav>
+      <div class="user-menu">
+        <span class="avatar" aria-hidden="true" th:text="${#strings.substring(#authentication.principal.nome,0,1).toUpperCase()}">C</span>
+        <span class="user-name" th:text="${#authentication.principal.nome}">Conta</span>
+        <form th:action="@{/logout}" method="post"><button class="logout" type="submit" title="Sair" aria-label="Sair"><svg class="i"><use href="#i-sair"/></svg></button></form>
+      </div>
+    </div>
+  </header>
+</th:block>
+</body>
+</html>

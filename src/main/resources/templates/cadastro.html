@@ -1,1 +1,27 @@
-<!doctype html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Criar conta · Cozinha em Dia</title><link rel="stylesheet" th:href="@{/css/app.css}"><link rel="stylesheet" th:href="@{/css/tema.css}"><script th:src="@{/js/app.js}" defer></script></head><body class="auth-page"><main class="auth-card"><a class="brand auth-brand" th:href="@{/login}"><span class="brand-mark">✳</span><span>Cozinha em Dia<small>receitas & despensa</small></span></a><p class="eyebrow">COMECE POR AQUI</p><h1>Crie sua conta</h1><p class="muted">Suas receitas e sua despensa, organizadas em um só lugar.</p><div class="alert error" th:if="${erro}" th:text="${erro}"></div><form class="form-stack" th:action="@{/cadastro}" method="post"><label>Como podemos te chamar?<input type="text" name="nome" placeholder="Seu nome" required maxlength="100"></label><label>E-mail<input type="email" name="email" placeholder="voce@email.com" required autocomplete="email"></label><label>Senha<input type="password" name="senha" minlength="6" placeholder="Pelo menos 6 caracteres" required></label><label>Confirme a senha<input type="password" name="confirmarSenha" minlength="6" placeholder="Digite novamente" required></label><button class="btn btn-primary btn-full" type="submit">Criar minha conta <span>→</span></button></form><div class="auth-help"><span>Já tem uma conta?</span><a th:href="@{/login}">Fazer login</a></div></main><div class="auth-side"><div class="auth-quote"><span class="quote-icon">✦</span><p>Planeje menos. Aproveite mais a hora de cozinhar.</p><span>Guarde suas receitas favoritas e use melhor os ingredientes que já tem.</span></div></div></body></html>
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head('Criar conta')}"></th:block></head>
+<body>
+<main class="acesso">
+  <div class="acesso-form">
+    <a class="brand" th:href="@{/login}">Cozinha em Dia</a>
+    <div>
+      <h1>Criar conta</h1>
+      <p class="muted" style="margin-top:6px">Leva menos de um minuto.</p>
+    </div>
+    <div class="alerta erro" th:if="${erro}" th:text="${erro}" style="margin:0"></div>
+    <form th:action="@{/cadastro}" method="post">
+      <label>Nome<input type="text" name="nome" required maxlength="100" autocomplete="name"></label>
+      <label>E-mail<input type="email" name="email" required autocomplete="email"></label>
+      <label>Senha <small>mínimo de 6 caracteres</small><input type="password" name="senha" minlength="6" required autocomplete="new-password"></label>
+      <label>Confirme a senha<input type="password" name="confirmarSenha" minlength="6" required autocomplete="new-password"></label>
+      <button class="btn btn-primary btn-block" type="submit">Criar conta</button>
+    </form>
+    <p class="acesso-rodape">Já tem conta? <a th:href="@{/login}">Entrar</a></p>
+  </div>
+  <figure class="acesso-capa" style="margin:0;background-image:url('https://commons.wikimedia.org/wiki/Special:FilePath/Pao_de_queijo_brasil.jpg?width=1400')">
+    <figcaption>Guarde as receitas que você faz e compartilhe com quem cozinha com você.<small>Foto: Pao de queijo brasil, Wikimedia Commons, CC BY-SA 4.0</small></figcaption>
+  </figure>
+</main>
+</body>
+</html>

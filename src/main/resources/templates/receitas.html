@@ -1,28 +1,24 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Receitas · Cozinha em Dia</title>
-  <link rel="stylesheet" th:href="@{/css/app.css}"><link rel="stylesheet" th:href="@{/css/tema.css}"><script th:src="@{/js/app.js}" defer></script>
-</head>
+<head><th:block th:replace="~{fragments/head :: head('Receitas')}"></th:block></head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
 <main class="page">
-  <div class="page-heading-row">
+  <div class="page-head">
     <div>
-      <p class="eyebrow">SEU CADERNO DIGITAL</p>
-      <h1>Minhas receitas</h1>
-      <p class="muted">Organize o que você gosta de cozinhar, com foto, vídeo e passo a passo.</p>
+      <h1>Receitas</h1>
+      <p class="muted"><span th:text="${total}">0</span> cadastradas. A situação de cada uma considera o que está na sua despensa.</p>
     </div>
-    <a class="btn btn-primary" th:href="@{/receitas/nova}">＋ Cadastrar receita</a>
+    <div class="acoes"><a class="btn btn-primary" th:href="@{/receitas/nova}"><svg class="i"><use href="#i-mais"/></svg>Nova receita</a></div>
   </div>
 
-  <div class="alert success" th:if="${sucesso}" th:text="${sucesso}"></div>
-  <div class="alert error" th:if="${erro}" th:text="${erro}"></div>
+  <div class="alerta sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
+  <div class="alerta erro" th:if="${erro}" th:text="${erro}"></div>
 
-  <form class="toolbar" method="get" th:action="@{/receitas}" th:if="${total > 0}">
-    <div class="search-box"><input type="search" name="q" th:value="${q}" placeholder="Buscar por nome, descrição ou ingrediente (ex.: farinha)" aria-label="Buscar receitas"></div>
+  <form class="ferramentas" method="get" th:action="@{/receitas}" th:if="${total > 0}">
+    <div class="busca"><svg class="i"><use href="#i-busca"/></svg><input type="search" name="q" th:value="${q}" placeholder="Nome, descrição ou ingrediente" aria-label="Buscar receitas"></div>
     <input type="hidden" name="situacao" th:value="${situacao}">
+    <button class="btn btn-secondary" type="submit">Buscar</button>
     <div class="filtros">
       <a class="filtro" th:classappend="${situacao == '' ? 'ativo' : ''}" th:href="@{/receitas(q=${q})}">Todas</a>
       <a class="filtro" th:classappend="${situacao == 'disponivel' ? 'ativo' : ''}" th:href="@{/receitas(q=${q},situacao='disponivel')}">Posso fazer agora</a>
@@ -30,40 +26,22 @@
     </div>
   </form>
 
-  <p class="sugestao-busca" th:if="${sugestao != null}">Nenhuma receita encontrada. Você quis dizer <a th:href="@{/receitas(q=${sugestao})}" th:text="${sugestao}">farinha</a>?</p>
+  <p class="sugestao-busca" th:if="${!#lists.isEmpty(sugestoes)}">Nenhum resultado para “<span th:text="${q}">termo</span>”. Você quis dizer:
+    <a th:each="s : ${sugestoes}" th:href="@{/receitas(q=${s})}" th:text="${s}">farinha</a>?</p>
 
-  <div class="cards" th:if="${!#lists.isEmpty(analises)}">
-    <article class="card-receita" th:each="a : ${analises}">
-      <a class="capa" th:classappend="${'tom-' + a.receita.tom}" th:href="@{/receitas/{id}(id=${a.receita.id})}" th:attr="aria-label=${'Abrir ' + a.receita.nome}">
-        <img th:if="${a.receita.capaUrl != null}" th:src="${a.receita.capaUrl}" alt="" loading="lazy">
-        <span class="capa-emoji" th:if="${a.receita.capaUrl == null}" th:text="${a.receita.emoji}">🍽️</span>
-        <span class="status-chip" th:classappend="${a.status.classe}" th:text="${a.status.rotulo}">Pode preparar</span>
-      </a>
-      <div class="corpo">
-        <h3><a th:href="@{/receitas/{id}(id=${a.receita.id})}" th:text="${a.receita.nome}">Nome da receita</a></h3>
-        <p class="descricao" th:text="${a.receita.descricao}">Descrição</p>
-        <div class="progresso" th:if="${a.totalItens > 0}" th:title="${a.itensOk + ' de ' + a.totalItens + ' ingredientes na despensa'}"><span th:style="${'width:' + (a.itensOk * 100 / a.totalItens) + '%'}"></span></div>
-        <p class="falta-resumo" th:if="${!#lists.isEmpty(a.faltantes)}">Falta: <span th:text="${a.faltantes[0].nome}">ingrediente</span><span th:if="${a.faltantes.size() > 1}" th:text="${' e mais ' + (a.faltantes.size() - 1)}"></span></p>
-        <div class="rodape">
-          <span>◷ <b th:text="${a.receita.tempoPreparoMin != null ? a.receita.tempoPreparoMin : '-'}">20</b> min · ♧ <b th:text="${a.receita.porcoes != null ? a.receita.porcoes : '-'}">2</b></span>
-          <span class="acoes">
-            <a class="icon-link" th:href="@{/receitas/{id}/editar(id=${a.receita.id})}" title="Editar">✎</a>
-            <form th:action="@{/receitas/{id}/excluir(id=${a.receita.id})}" method="post" data-confirmar="Excluir esta receita? Fotos e vídeos enviados também serão apagados."><button type="submit" class="icon-link danger-link" title="Excluir">×</button></form>
-          </span>
-        </div>
-      </div>
-    </article>
+  <div class="grade" th:if="${!#lists.isEmpty(analises)}">
+    <th:block th:each="a : ${analises}"><th:block th:replace="~{fragments/cartao :: cartao(${a}, ${compartilhadoCom.get(a.receita.id)}, true)}"></th:block></th:block>
   </div>
 
-  <div class="empty-state" th:if="${#lists.isEmpty(analises) && total == 0}">
-    <span class="empty-emoji">♨</span><h2>Seu caderno está em branco</h2>
-    <p>Cadastre uma receita para começar a comparar os ingredientes disponíveis.</p>
-    <a class="btn btn-primary" th:href="@{/receitas/nova}">Cadastrar primeira receita</a>
+  <div class="vazio" th:if="${#lists.isEmpty(analises) && total == 0}">
+    <h2>Nenhuma receita cadastrada</h2>
+    <p>Cadastre a primeira receita para comparar seus ingredientes com a despensa.</p>
+    <a class="btn btn-primary" th:href="@{/receitas/nova}">Cadastrar receita</a>
   </div>
-  <div class="empty-state" th:if="${#lists.isEmpty(analises) && total > 0}">
-    <span class="empty-emoji">🔎</span><h2>Nada encontrado</h2>
+  <div class="vazio" th:if="${#lists.isEmpty(analises) && total > 0}">
+    <h2>Nenhuma receita encontrada</h2>
     <p>Tente outro termo ou remova o filtro.</p>
-    <a class="btn btn-outline" th:href="@{/receitas}">Limpar busca</a>
+    <a class="btn btn-secondary" th:href="@{/receitas}">Limpar busca</a>
   </div>
 </main>
 </body>
