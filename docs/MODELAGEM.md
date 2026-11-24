@@ -50,7 +50,7 @@ erDiagram
 | Entidade/tabela | Responsabilidade | Campos importantes |
 |---|---|---|
 | `usuarios` | Conta e dados próprios do usuário | `id`, `nome`, `email`, `senha` (hash BCrypt) |
-| `receitas` | Receita cadastrada por um usuário | `id`, `usuario_id`, `nome`, `descricao`, `modo_preparo`, `tempo_preparo_min`, `porcoes`, `imagem_arquivo`, `imagem_url`, `video_url`, `video_arquivo` |
+| `receitas` | Receita cadastrada por um usuário | `id`, `usuario_id`, `nome`, `descricao`, `modo_preparo`, `tempo_preparo_min`, `porcoes`, `imagem_arquivo`, `imagem_url`, `video_url`, `video_arquivo`, `origem_nome` |
 | `etapas_receita` | Etapas numeradas do preparo, cada uma com texto e foto opcional | `receita_id`, `ordem`, `descricao`, `imagem_arquivo` |
 | `compartilhamentos` | Receita enviada pelo dono a outro usuário | `receita_id`, `destino_id`, `mensagem`, `criado_em`, `copiada` |
 | `ingredientes` | Catálogo de ingredientes reutilizável | `id`, `nome` |
@@ -76,7 +76,8 @@ erDiagram
 
 7. Cada receita aceita uma imagem de capa (arquivo enviado ou endereço externo), um link de videoaula do YouTube e um vídeo próprio. Os arquivos ficam em uma pasta fora do código (`app.uploads.dir`), com nome gerado pelo sistema, e o banco guarda apenas esse nome. O tipo do arquivo é conferido pelo conteúdo, e não pela extensão informada.
 8. Somente o dono compartilha a receita, informando o e-mail de outro usuário já cadastrado. O destinatário pode consultá-la, ver o que falta na própria despensa e salvar uma cópia independente (com ingredientes, etapas e arquivos duplicados). O dono e o destinatário podem desfazer o compartilhamento.
-9. Nomes de ingredientes digitados com erro (por exemplo, `farna`) são corrigidos para o nome conhecido mais próximo (`Farinha`), usando a distância de edição entre palavras e a popularidade do ingrediente para desempate. A mesma regra serve para a busca de receitas.
+9. Nomes de ingredientes digitados com erro (por exemplo, `farna`) são corrigidos para o nome conhecido mais próximo (`Farinha`), usando a distância de edição entre palavras e a popularidade do ingrediente para desempate. A mesma regra serve para a busca de receitas. Quando não há uma única correção clara, a tela oferece alternativas ("Você quis dizer...?") ordenadas por uma nota que combina escrita, som (chave fonética do português) e trechos de três letras em comum.
+10. A adaptação cria uma nova receita na conta do usuário, com nome informado por ele (único entre as suas receitas), copiando ingredientes, etapas e arquivos. A coluna `origem_nome` guarda apenas o nome da receita de origem, como texto, para que a versão continue válida mesmo que a original seja excluída.
 
 ## Por que existem duas tabelas associativas?
 

@@ -17,11 +17,13 @@
 | `POST` | `/receitas/{id}/excluir` | Excluir receita e os arquivos de mídia dela |
 | `POST` | `/receitas/{id}/compartilhar` | Compartilhar a receita com outro usuário, pelo e-mail |
 | `POST` | `/receitas/{id}/salvar-copia` | Salvar, na conta do destinatário, uma cópia da receita compartilhada |
+| `POST` | `/receitas/{id}/adaptar` | Criar uma versão adaptada (cópia completa com o nome informado) e abrir a edição dela. Vale para receitas próprias e compartilhadas |
 | `GET` | `/compartilhadas` | Listar receitas compartilhadas com o usuário |
-| `POST` | `/compartilhamentos/{id}/remover` | Desfazer um compartilhamento (destinatário ou dono) |
+| `POST` | `/compartilhamentos/{id}/remover` | Desfazer um compartilhamento (destinatário ou dono). O parâmetro opcional `receita` faz o dono voltar à página da receita |
 | `GET` | `/midia/{arquivo}` | Entregar imagem ou vídeo enviado (exige login e aceita requisições parciais) |
 | `GET` | `/api/ingredientes/corrigir?nome=` | Sugerir a grafia correta de um ingrediente (JSON) |
 | `GET` | `/api/ingredientes/sugestoes?q=` | Sugerir ingredientes conhecidos para autocompletar (JSON) |
+| `GET` | `/api/ingredientes/verificar?nome=` | Informar se o nome é conhecido e, se não for, listar até quatro alternativas por escrita e som (JSON: `conhecido`, `corrigido`, `alterado`, `sugestoes`) |
 | `GET` | `/despensa` | Consultar ingredientes do usuário |
 | `POST` | `/despensa` | Adicionar ou somar um ingrediente (converte unidades compatíveis) |
 | `POST` | `/despensa/editar` | Alterar a quantidade e a unidade de um item |

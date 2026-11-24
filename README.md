@@ -18,10 +18,13 @@ Aplicação web desenvolvida como trabalho acadêmico para o cadastro de receita
 - Imagem de capa em cada receita (arquivo ou endereço da internet). Receitas sem foto recebem uma capa ilustrada.
 - Material de aula: link de videoaula do YouTube, vídeo próprio (MP4 ou WebM, até 60 MB) e foto opcional em cada etapa do preparo.
 - Correção automática de ingredientes digitados com erro (por exemplo, `farna` vira `Farinha`), no cadastro de receitas, na despensa e na busca, com sugestões de autocompletar.
-- Compartilhamento de receitas entre usuários pelo e-mail, com mensagem opcional. O destinatário vê o que falta na própria despensa e pode salvar uma cópia editável.
-- Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes (com conversão de unidades), edição da quantidade e da unidade de cada item e remoção.
+- Sugestões para nomes digitados com erro (por exemplo, `xocolate` gera a pergunta "Você quis dizer: Chocolate?"). O algoritmo é local e não usa serviço externo: combina distância de edição de Damerau-Levenshtein, uma chave fonética para o português (`ch` e `x`, `ss`, `ç` e `z`, `h` mudo, `qu` e `k`, vogal final) e a comparação de trechos de três letras. Está em `service/CorretorIngredientes.java`.
+- Compartilhamento de receitas entre usuários pelo e-mail, com mensagem opcional. O destinatário vê o que falta na própria despensa e pode salvar uma cópia editável. O dono vê, no cartão e na página da receita, com quem ela foi compartilhada, e pode revogar o acesso.
+- Adaptação de receitas: o botão "Adaptar" cria uma nova versão, com nome próprio, que já traz copiados ingredientes, etapas, fotos e vídeos. A receita original não é alterada, e a versão indica de qual receita veio.
+- Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes (com conversão de unidades), edição da quantidade e da unidade de cada item, remoção, contagem de receitas que usam cada ingrediente e lista de compras com o que falta, somado entre as receitas.
 - Comparação: classificação das receitas em disponíveis, parciais ou indisponíveis, com a quantidade que falta de cada ingrediente.
-- Dados de demonstração: seis receitas, vinte ingredientes e uma despensa inicial, criados na primeira execução.
+- Receita: ajuste de porções com recálculo das quantidades, marcação de ingredientes e impressão.
+- Dados de demonstração: dezesseis receitas com fotografia e uma despensa inicial, criadas na primeira execução. Receitas já existentes não são duplicadas.
 
 A comparação considera quantidade e unidade, com conversão automática entre unidades da mesma grandeza: massa (`mg`, `g` e `kg`) e volume (`cl`, `ml` e `l`). Assim, 1 `kg` na despensa atende uma receita que pede 500 `g`, e vice-versa. Unidades sem equivalência fixa (`unidade`, `dente`, `colher` e `xícara`) só são comparadas com elas mesmas. A regra está em `service/ConversorUnidades.java`.
 
@@ -199,7 +202,7 @@ No Linux e no macOS:
 ./mvnw test
 ```
 
-Os testes verificam o envio de imagem, vídeo e fotos de etapas, o compartilhamento entre dois usuários, a busca com correção de digitação, o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
+Os testes verificam o envio de imagem, vídeo e fotos de etapas, o compartilhamento entre dois usuários, a adaptação de receitas, as sugestões para ingredientes digitados com erro, a lista de compras, a busca com correção de digitação, o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
 
 ## Documentação
 
@@ -242,6 +245,31 @@ mvnw, mvnw.cmd, .mvn/   Maven Wrapper
 CozinhaEmDia.exe, executar.bat   preparam o ambiente (JDK e PostgreSQL) e iniciam a aplicação
 scripts/        script de preparação (PowerShell) e código do lançador
 ```
+
+## Créditos das fotografias
+
+As fotografias das receitas de demonstração são arquivos de licença livre do Wikimedia Commons. Elas não ficam no repositório: a aplicação as carrega diretamente de `commons.wikimedia.org` (endereço `Special:FilePath`) e, por isso, precisa de acesso à internet para exibi-las. Sem conexão, a receita usa a capa ilustrada. A tela de entrada e a de cadastro usam as fotografias de espaguete e de pão de queijo, que constam na lista.
+
+| Arquivo | Autoria | Licença |
+|---|---|---|
+| Omelet With Fixings.jpg | Stripey the crab | CC BY-SA 3.0 |
+| Spaghetti aglio e olio KB.jpg | Bairuilong | CC BY-SA 4.0 |
+| Liat Portal for Foodie Disorder - Grilled chicken with rice and vegetables.jpg | HaJunkiyada | CC BY-SA 4.0 |
+| Foodiesfeed.com pouring-honey-on-pancakes-with-walnuts.jpg | Mae Mu | CC0 |
+| Banana bread cut into slices.jpg | Shisma | CC BY 4.0 |
+| Lentil salad (29308018298).jpg | Joey Doll | CC BY 2.0 |
+| Pao de queijo brasil.jpg | Acfariac | CC BY-SA 4.0 |
+| Brigadeiros.jpg | Rodrigogomesonetwo | CC BY-SA 4.0 |
+| Bolo de cenoura com chocolate e granulado.jpg | Sintegrity | CC BY-SA 4.0 |
+| Prato com arroz e feijão, frango grelhado, batata frita, salada e ovo frito como adicionais.jpg | Tet | CC0 |
+| Lasagna 2022.jpg | Derk29 | CC BY-SA 4.0 |
+| Traditional Vegetable Soup from Argentina.jpg | Horacio Cambeiro | CC BY-SA 3.0 |
+| MashedPotatoes.jpg | Renee Comet (Instituto Nacional do Câncer dos EUA) | Domínio público |
+| Farofa de ovo.jpg | Melsj | CC BY-SA 4.0 |
+| Pudim de leite (3544235183).jpg | Marcelo Träsel | CC BY-SA 2.0 |
+| Beef Stroganoff-03.jpg | V 2 | CC BY 2.0 |
+
+As páginas de cada arquivo no Wikimedia Commons trazem o texto completo da licença e a autoria original.
 
 ## Limitações
 
