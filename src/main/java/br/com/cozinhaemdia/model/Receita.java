@@ -73,8 +73,6 @@ public class Receita {
         if (imagemArquivo != null && !imagemArquivo.isBlank()) return "/midia/" + imagemArquivo;
         return imagemUrl != null && !imagemUrl.isBlank() ? imagemUrl : null;
     }
-    @Transient public String getEmoji() { return br.com.cozinhaemdia.service.AparenciaReceita.emoji(nome); }
-    @Transient public int getTom() { return br.com.cozinhaemdia.service.AparenciaReceita.tom(nome); }
     @Transient public String getVideoEmbedUrl() {
         String id = getVideoYoutubeId();
         return id == null ? null : br.com.cozinhaemdia.service.YoutubeUtil.enderecoIncorporado(id);

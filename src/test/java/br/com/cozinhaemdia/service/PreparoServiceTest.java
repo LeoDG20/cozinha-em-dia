@@ -196,14 +196,4 @@ class PreparoServiceTest {
             throw new AssertionError(e);
         }
     }
-
-    @Test
-    void aparenciaEscolheEmojiPeloNomeETomEstavel() {
-        assertEquals("🍰", AparenciaReceita.emoji("Bolo de banana e aveia"));
-        assertEquals("🍳", AparenciaReceita.emoji("Omelete de queijo"));
-        assertEquals("🍝", AparenciaReceita.emoji("Macarrão alho e óleo"));
-        assertEquals("🍽️", AparenciaReceita.emoji("Prato misterioso"));
-        assertEquals(AparenciaReceita.tom("Bolo"), AparenciaReceita.tom("  bolo "));
-        assertTrue(AparenciaReceita.tom("qualquer nome") >= 1 && AparenciaReceita.tom("qualquer nome") <= 6);
-    }
 }

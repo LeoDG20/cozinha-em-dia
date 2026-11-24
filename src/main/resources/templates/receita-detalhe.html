@@ -56,7 +56,7 @@
           </label>
         </form>
       </details>
-      <p class="nota-recebida" th:if="${!dono && recebido != null && recebido.mensagem != null}">“<span th:text="${recebido.mensagem}">Mensagem</span>” <b th:text="${'— ' + receita.usuario.nome}"></b></p>
+      <p class="nota-recebida" th:if="${!dono && recebido != null && recebido.mensagem != null}">“<span th:text="${recebido.mensagem}">Mensagem</span>” <b th:text="${'por ' + receita.usuario.nome}"></b></p>
     </div>
   </section>
 

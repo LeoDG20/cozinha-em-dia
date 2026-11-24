@@ -15,7 +15,7 @@ Aplicação web desenvolvida como trabalho acadêmico para o cadastro de receita
 
 - Conta de usuário: cadastro, login e logout, com páginas protegidas por Spring Security. As senhas são armazenadas com BCrypt e os formulários possuem proteção contra CSRF.
 - Receitas: listagem com busca e filtros, visualização, cadastro, edição e exclusão, com tempo de preparo, porções, ingredientes, quantidades, unidades e modo de preparo em etapas.
-- Imagem de capa em cada receita (arquivo ou endereço da internet). Receitas sem foto recebem uma capa ilustrada.
+- Imagem de capa em cada receita (arquivo ou endereço da internet). Receitas sem foto exibem um espaço neutro no lugar da capa.
 - Material de aula: link de videoaula do YouTube, vídeo próprio (MP4 ou WebM, até 60 MB) e foto opcional em cada etapa do preparo.
 - Correção automática de ingredientes digitados com erro (por exemplo, `farna` vira `Farinha`), no cadastro de receitas, na despensa e na busca, com sugestões de autocompletar.
 - Sugestões para nomes digitados com erro (por exemplo, `xocolate` gera a pergunta "Você quis dizer: Chocolate?"). O algoritmo é local e não usa serviço externo: combina distância de edição de Damerau-Levenshtein, uma chave fonética para o português (`ch` e `x`, `ss`, `ç` e `z`, `h` mudo, `qu` e `k`, vogal final) e a comparação de trechos de três letras. Está em `service/CorretorIngredientes.java`.
@@ -248,7 +248,7 @@ scripts/        script de preparação (PowerShell) e código do lançador
 
 ## Créditos das fotografias
 
-As fotografias das receitas de demonstração são arquivos de licença livre do Wikimedia Commons. Elas não ficam no repositório: a aplicação as carrega diretamente de `commons.wikimedia.org` (endereço `Special:FilePath`) e, por isso, precisa de acesso à internet para exibi-las. Sem conexão, a receita usa a capa ilustrada. A tela de entrada e a de cadastro usam as fotografias de espaguete e de pão de queijo, que constam na lista.
+As fotografias das receitas de demonstração são arquivos de licença livre do Wikimedia Commons. Elas não ficam no repositório: a aplicação as carrega diretamente de `commons.wikimedia.org` (endereço `Special:FilePath`) e, por isso, precisa de acesso à internet para exibi-las. Sem conexão, a receita exibe o espaço neutro no lugar da foto. A tela de entrada e a de cadastro usam as fotografias de espaguete e de pão de queijo, que constam na lista.
 
 | Arquivo | Autoria | Licença |
 |---|---|---|
