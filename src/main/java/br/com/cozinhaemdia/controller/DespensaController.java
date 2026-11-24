@@ -5,10 +5,6 @@ import br.com.cozinhaemdia.repository.UsuarioRepository;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.CorretorIngredientes;
 import br.com.cozinhaemdia.service.DespensaService;
-import br.com.cozinhaemdia.service.DisponibilidadeService;
-import br.com.cozinhaemdia.service.DisponibilidadeService.AnaliseReceita;
-import br.com.cozinhaemdia.service.DisponibilidadeService.ItemFaltante;
-import br.com.cozinhaemdia.service.DisponibilidadeService.StatusDisponibilidade;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,33 +13,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 @Controller
 public class DespensaController {
-    private static final List<String> UNIDADES = List.of("g", "kg", "ml", "l", "unidade", "dente", "colher", "xícara");
-
-    /** Item da lista de compras: o que falta para completar receitas, somado entre todas elas. */
-    public record Compra(String nome, double quantidade, String unidade, List<String> receitas) {
-        public String quantidadeTexto() { return br.com.cozinhaemdia.service.ReceitaService.formatar(quantidade) + " " + unidade; }
-        public String linhaTexto() { return quantidadeTexto() + " de " + nome; }
-    }
+    private static final List<String> UNIDADES = List.of("g", "kg", "ml", "l", "unidade", "dente", "colher", "colher de chá", "xícara");
 
     private final DespensaService despensaService;
     private final UsuarioRepository usuarios;
     private final CorretorIngredientes corretor;
     private final ReceitaIngredienteRepository receitaIngredientes;
-    private final DisponibilidadeService disponibilidade;
 
     public DespensaController(DespensaService despensaService, UsuarioRepository usuarios, CorretorIngredientes corretor,
-                              ReceitaIngredienteRepository receitaIngredientes, DisponibilidadeService disponibilidade) {
+                              ReceitaIngredienteRepository receitaIngredientes) {
         this.despensaService = despensaService; this.usuarios = usuarios; this.corretor = corretor;
-        this.receitaIngredientes = receitaIngredientes; this.disponibilidade = disponibilidade;
+        this.receitaIngredientes = receitaIngredientes;
     }
 
     @GetMapping("/despensa")
@@ -52,8 +38,6 @@ public class DespensaController {
         model.addAttribute("unidades", UNIDADES);
         model.addAttribute("sugestoes", corretor.nomesConhecidos());
         model.addAttribute("uso", usoPorIngrediente(auth.getId()));
-        List<Compra> compras = listaDeCompras(disponibilidade.analisar(auth.getId()));
-        model.addAttribute("compras", compras);
         return "despensa";
     }
 
@@ -88,28 +72,5 @@ public class DespensaController {
         Map<Long, Long> uso = new HashMap<>();
         for (Object[] linha : receitaIngredientes.contarUsoPorIngrediente(usuarioId)) uso.put((Long) linha[0], ((Number) linha[1]).longValue());
         return uso;
-    }
-
-    /** Soma o que falta nas receitas quase prontas (e nas indisponíveis com poucos itens), agrupando por ingrediente e unidade. */
-    static List<Compra> listaDeCompras(List<AnaliseReceita> analises) {
-        Map<String, double[]> somas = new LinkedHashMap<>();
-        Map<String, String[]> rotulos = new HashMap<>();
-        Map<String, List<String>> origem = new HashMap<>();
-        for (AnaliseReceita a : analises) {
-            if (a.getStatus() == StatusDisponibilidade.DISPONIVEL) continue;
-            for (ItemFaltante f : a.getFaltantes()) {
-                String chave = f.getNome().toLowerCase(Locale.ROOT) + "|" + f.getUnidade();
-                somas.computeIfAbsent(chave, k -> new double[1])[0] += f.getQuantidadeFaltante();
-                rotulos.putIfAbsent(chave, new String[]{f.getNome(), f.getUnidade()});
-                List<String> nomes = origem.computeIfAbsent(chave, k -> new ArrayList<>());
-                if (!nomes.contains(a.getReceita().getNome())) nomes.add(a.getReceita().getNome());
-            }
-        }
-        List<Compra> compras = new ArrayList<>();
-        for (Map.Entry<String, double[]> e : somas.entrySet())
-            compras.add(new Compra(rotulos.get(e.getKey())[0], e.getValue()[0], rotulos.get(e.getKey())[1], origem.get(e.getKey())));
-        compras.sort((x, y) -> Integer.compare(y.receitas().size(), x.receitas().size()) != 0
-                ? Integer.compare(y.receitas().size(), x.receitas().size()) : x.nome().compareToIgnoreCase(y.nome()));
-        return compras;
     }
 }

@@ -1,6 +1,6 @@
-package br.com.cozinhaemdia.controller;
+package br.com.cozinhaemdia.service;
 
-import br.com.cozinhaemdia.controller.DespensaController.Compra;
+import br.com.cozinhaemdia.service.ListaDeCompras.Compra;
 import br.com.cozinhaemdia.model.Receita;
 import br.com.cozinhaemdia.service.DisponibilidadeService.AnaliseReceita;
 import br.com.cozinhaemdia.service.DisponibilidadeService.ItemFaltante;
@@ -12,7 +12,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Regras da lista de compras montada a partir do que falta nas receitas. */
+/** Regras da lista de mercado montada a partir do que falta nas receitas. */
 class ListaDeComprasTest {
     private static Receita receita(String nome) {
         Receita r = new Receita();
@@ -26,7 +26,7 @@ class ListaDeComprasTest {
 
     @Test
     void somaOQueFaltaEntreReceitasDoMesmoIngredienteEUnidade() {
-        List<Compra> compras = DespensaController.listaDeCompras(List.of(
+        List<Compra> compras = ListaDeCompras.montar(List.of(
                 analise("Bolo", StatusDisponibilidade.PARCIAL, new ItemFaltante("Açúcar", 200, "g", 0)),
                 analise("Pudim", StatusDisponibilidade.PARCIAL, new ItemFaltante("açúcar", 250, "g", 0))));
 
@@ -39,7 +39,7 @@ class ListaDeComprasTest {
 
     @Test
     void unidadesDiferentesNaoSaoSomadas() {
-        List<Compra> compras = DespensaController.listaDeCompras(List.of(
+        List<Compra> compras = ListaDeCompras.montar(List.of(
                 analise("Bolo", StatusDisponibilidade.PARCIAL, new ItemFaltante("Leite", 200, "ml", 0)),
                 analise("Pudim", StatusDisponibilidade.PARCIAL, new ItemFaltante("Leite", 1, "xícara", 0))));
 
@@ -48,7 +48,7 @@ class ListaDeComprasTest {
 
     @Test
     void receitasProntasNaoEntramNaLista() {
-        List<Compra> compras = DespensaController.listaDeCompras(List.of(
+        List<Compra> compras = ListaDeCompras.montar(List.of(
                 analise("Omelete", StatusDisponibilidade.DISPONIVEL),
                 analise("Bolo", StatusDisponibilidade.INDISPONIVEL, new ItemFaltante("Ovo", 3, "unidade", 0))));
 
@@ -58,7 +58,7 @@ class ListaDeComprasTest {
 
     @Test
     void ordenaPeloIngredienteUsadoEmMaisReceitasDepoisPeloNome() {
-        List<Compra> compras = DespensaController.listaDeCompras(List.of(
+        List<Compra> compras = ListaDeCompras.montar(List.of(
                 analise("A", StatusDisponibilidade.PARCIAL, new ItemFaltante("Zimbro", 1, "g", 0), new ItemFaltante("Óleo", 10, "ml", 0)),
                 analise("B", StatusDisponibilidade.PARCIAL, new ItemFaltante("Óleo", 10, "ml", 0), new ItemFaltante("Alho", 1, "dente", 0))));
 
@@ -68,7 +68,7 @@ class ListaDeComprasTest {
 
     @Test
     void mesmaReceitaNaoApareceDuasVezesNaOrigem() {
-        List<Compra> compras = DespensaController.listaDeCompras(List.of(
+        List<Compra> compras = ListaDeCompras.montar(List.of(
                 analise("Bolo", StatusDisponibilidade.PARCIAL, new ItemFaltante("Ovo", 1, "unidade", 0), new ItemFaltante("Ovo", 2, "unidade", 0))));
 
         assertEquals(1, compras.get(0).receitas().size());
@@ -76,7 +76,14 @@ class ListaDeComprasTest {
     }
 
     @Test
+    void valorDoFormularioTrazQuantidadeUnidadeENome() {
+        Compra c = new Compra("Farinha de trigo", 250.5, "g", List.of("Bolo"));
+
+        assertEquals("250.5|g|Farinha de trigo", c.valorFormulario());
+    }
+
+    @Test
     void listaVaziaQuandoNaoFaltaNada() {
-        assertTrue(DespensaController.listaDeCompras(List.of()).isEmpty());
+        assertTrue(ListaDeCompras.montar(List.of()).isEmpty());
     }
 }

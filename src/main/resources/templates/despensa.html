@@ -9,13 +9,16 @@
       <h1>Despensa</h1>
       <p class="muted">O que você tem em casa. As quantidades são usadas para dizer quais receitas dá para fazer.</p>
     </div>
-    <div class="contador-despensa"><strong th:text="${itens.size()}">0</strong><span>ingredientes</span></div>
+    <div class="acoes">
+      <a class="btn btn-secondary" th:href="@{/mercado}">Lista de mercado</a>
+      <a class="btn btn-secondary" th:href="@{/medidas}">Conversor de medidas</a>
+    </div>
   </div>
 
   <div class="alerta sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
   <div class="alerta erro" th:if="${erro}" th:text="${erro}"></div>
 
-  <div class="despensa-layout">
+  <div>
     <div>
       <section class="painel adicionar-bloco">
         <form class="adicionar-linha" th:action="@{/despensa}" method="post">
@@ -27,7 +30,7 @@
           <button class="btn btn-primary" type="submit">Adicionar</button>
         </form>
         <datalist id="lista-ingredientes"><option th:each="n : ${sugestoes}" th:value="${n}"></option></datalist>
-        <p class="muted" style="margin-top:10px;font-size:13px">Se o ingrediente já existe, a quantidade é somada (1 kg e 200 g viram 1,2 kg). Se o nome estiver errado, mostramos sugestões.</p>
+        <p class="muted" style="margin-top:10px;font-size:13px">Se o ingrediente já existe, a quantidade é somada (1 kg e 200 g viram 1,2 kg). Medidas caseiras (xícara, colher) também valem: 2 xícaras de farinha equivalem a cerca de 240 g.</p>
       </section>
 
       <div class="tabela-wrap" th:if="${!#lists.isEmpty(itens)}">
@@ -64,21 +67,6 @@
       </div>
     </div>
 
-    <aside class="painel compras">
-      <div class="painel-cab"><h2>Lista de compras</h2><span class="contagem" th:if="${!#lists.isEmpty(compras)}" th:text="${compras.size() + (compras.size() == 1 ? ' item' : ' itens')}">3 itens</span></div>
-      <p class="muted" th:if="${#lists.isEmpty(compras)}">Nada a comprar: todas as suas receitas estão completas com a despensa atual.</p>
-      <p class="muted" th:if="${!#lists.isEmpty(compras)}" style="font-size:13.5px">O que falta para completar as receitas cadastradas, já somado entre elas.</p>
-      <ul id="lista-compras" th:if="${!#lists.isEmpty(compras)}">
-        <li th:each="c : ${compras}" th:attr="data-linha-texto=${c.linhaTexto()}">
-          <span><span th:text="${c.nome}">Ovo</span><small th:text="${#strings.listJoin(c.receitas, ', ')}">Omelete</small></span>
-          <span class="qtd" th:text="${c.quantidadeTexto()}">3 unidade</span>
-        </li>
-      </ul>
-      <div class="compras-acoes no-print" th:if="${!#lists.isEmpty(compras)}">
-        <button class="btn btn-secondary btn-sm" type="button" data-copiar="#lista-compras"><svg class="i"><use href="#i-copia"/></svg>Copiar</button>
-        <button class="btn btn-secondary btn-sm" type="button" data-imprimir><svg class="i"><use href="#i-imprimir"/></svg>Imprimir</button>
-      </div>
-    </aside>
   </div>
 </main>
 </body>
