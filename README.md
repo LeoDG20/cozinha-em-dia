@@ -14,7 +14,11 @@ Aplicação web desenvolvida como trabalho acadêmico para o cadastro de receita
 ## Funcionalidades
 
 - Conta de usuário: cadastro, login e logout, com páginas protegidas por Spring Security. As senhas são armazenadas com BCrypt e os formulários possuem proteção contra CSRF.
-- Receitas: listagem, visualização, cadastro, edição e exclusão, com tempo de preparo, porções, ingredientes, quantidades, unidades e modo de preparo.
+- Receitas: listagem com busca e filtros, visualização, cadastro, edição e exclusão, com tempo de preparo, porções, ingredientes, quantidades, unidades e modo de preparo em etapas.
+- Imagem de capa em cada receita (arquivo ou endereço da internet). Receitas sem foto recebem uma capa ilustrada.
+- Material de aula: link de videoaula do YouTube, vídeo próprio (MP4 ou WebM, até 60 MB) e foto opcional em cada etapa do preparo.
+- Correção automática de ingredientes digitados com erro (por exemplo, `farna` vira `Farinha`), no cadastro de receitas, na despensa e na busca, com sugestões de autocompletar.
+- Compartilhamento de receitas entre usuários pelo e-mail, com mensagem opcional. O destinatário vê o que falta na própria despensa e pode salvar uma cópia editável.
 - Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes (com conversão de unidades), edição da quantidade e da unidade de cada item e remoção.
 - Comparação: classificação das receitas em disponíveis, parciais ou indisponíveis, com a quantidade que falta de cada ingrediente.
 - Dados de demonstração: seis receitas, vinte ingredientes e uma despensa inicial, criados na primeira execução.
@@ -141,6 +145,8 @@ O sistema utiliza PostgreSQL, com os parâmetros abaixo (valores padrão de `app
 
 Esses valores podem ser substituídos pelas variáveis de ambiente `DB_URL`, `DB_USER` e `DB_PASSWORD`.
 
+As imagens e os vídeos enviados ficam na pasta `uploads/`, ao lado da aplicação (configurável pela variável `UPLOADS_DIR`), e não são versionados. O banco guarda apenas o nome de cada arquivo.
+
 As tabelas são criadas pelo Hibernate na inicialização (`spring.jpa.hibernate.ddl-auto=update`). Em seguida, a classe `DataInitializer` cadastra a conta de demonstração e os dados de exemplo, caso ainda não existam. Os dados ficam no próprio PostgreSQL e permanecem entre as execuções.
 
 ### Criação manual do banco
@@ -193,7 +199,7 @@ No Linux e no macOS:
 ./mvnw test
 ```
 
-Os testes verificam o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
+Os testes verificam o envio de imagem, vídeo e fotos de etapas, o compartilhamento entre dois usuários, a busca com correção de digitação, o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
 
 ## Documentação
 
@@ -224,10 +230,11 @@ src/main/java/br/com/cozinhaemdia/
   controller/   rotas e preparação dos dados para as telas
   model/        entidades JPA
   repository/   interfaces de persistência
-  service/      regras de receita, despensa e disponibilidade
+  service/      regras de receita, despensa, disponibilidade, mídia, correção de ingredientes e compartilhamento
 src/main/resources/
   templates/    páginas Thymeleaf
   static/css/   estilo da interface
+  static/js/    linhas dinâmicas do formulário, prévia de arquivos e correção ao digitar
   application.properties
 src/test/java/  testes automatizados
 database/       scripts SQL de referência

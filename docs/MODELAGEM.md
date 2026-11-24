@@ -50,7 +50,9 @@ erDiagram
 | Entidade/tabela | Responsabilidade | Campos importantes |
 |---|---|---|
 | `usuarios` | Conta e dados próprios do usuário | `id`, `nome`, `email`, `senha` (hash BCrypt) |
-| `receitas` | Receita cadastrada por um usuário | `id`, `usuario_id`, `nome`, `descricao`, `modo_preparo`, `tempo_preparo_min`, `porcoes` |
+| `receitas` | Receita cadastrada por um usuário | `id`, `usuario_id`, `nome`, `descricao`, `modo_preparo`, `tempo_preparo_min`, `porcoes`, `imagem_arquivo`, `imagem_url`, `video_url`, `video_arquivo` |
+| `etapas_receita` | Etapas numeradas do preparo, cada uma com texto e foto opcional | `receita_id`, `ordem`, `descricao`, `imagem_arquivo` |
+| `compartilhamentos` | Receita enviada pelo dono a outro usuário | `receita_id`, `destino_id`, `mensagem`, `criado_em`, `copiada` |
 | `ingredientes` | Catálogo de ingredientes reutilizável | `id`, `nome` |
 | `receita_ingredientes` | Tabela associativa entre receita e ingrediente, com quantidade requerida | `receita_id`, `ingrediente_id`, `quantidade`, `unidade` |
 | `despensa` | Quantidade de cada ingrediente mantida por cada usuário | `usuario_id`, `ingrediente_id`, `quantidade`, `unidade` |
@@ -59,6 +61,8 @@ erDiagram
 
 - Um usuário pode cadastrar várias receitas; cada receita pertence a um usuário.
 - Uma receita pode conter vários ingredientes; um ingrediente pode aparecer em várias receitas. A tabela `receita_ingredientes` resolve esse relacionamento N:N e armazena quantidade e unidade específicas para aquela receita.
+- Uma receita possui várias etapas (`etapas_receita`), mantidas na ordem em que foram cadastradas e excluídas junto com a receita.
+- Uma receita pode ser compartilhada com vários usuários e um usuário pode receber várias receitas. A tabela `compartilhamentos` resolve essa relação N:N e impede que a mesma receita seja enviada duas vezes à mesma pessoa.
 - Um usuário pode ter vários ingredientes na despensa; o mesmo ingrediente pode estar na despensa de vários usuários. A tabela `despensa` resolve esse relacionamento e guarda o estoque individual.
 
 ## Regras de negócio do protótipo
@@ -69,6 +73,10 @@ erDiagram
 4. Ao adicionar novamente um ingrediente que já está na despensa, a quantidade é somada. Se a unidade informada for da mesma grandeza da cadastrada (por exemplo, `kg` e `g`), o valor é convertido para a unidade do item. Se for incompatível (por exemplo, `ml` e `g`), o sistema recusa a operação. O item também pode ser corrigido diretamente, com nova quantidade e nova unidade.
 5. Uma receita fica **disponível** quando há quantidade suficiente de todos os seus ingredientes; **parcial** quando há algum estoque correspondente, mas ainda falta quantidade ou ingrediente; e **indisponível** quando nenhum item requerido tem estoque correspondente suficiente para avançar.
 6. A comparação converte o estoque para a unidade da receita quando as duas pertencem à mesma grandeza: massa (`mg`, `g`, `kg`) ou volume (`cl`, `ml`, `l`). Unidades como `unidade`, `dente`, `colher` e `xícara` não têm equivalência fixa e só são comparadas com elas mesmas.
+
+7. Cada receita aceita uma imagem de capa (arquivo enviado ou endereço externo), um link de videoaula do YouTube e um vídeo próprio. Os arquivos ficam em uma pasta fora do código (`app.uploads.dir`), com nome gerado pelo sistema, e o banco guarda apenas esse nome. O tipo do arquivo é conferido pelo conteúdo, e não pela extensão informada.
+8. Somente o dono compartilha a receita, informando o e-mail de outro usuário já cadastrado. O destinatário pode consultá-la, ver o que falta na própria despensa e salvar uma cópia independente (com ingredientes, etapas e arquivos duplicados). O dono e o destinatário podem desfazer o compartilhamento.
+9. Nomes de ingredientes digitados com erro (por exemplo, `farna`) são corrigidos para o nome conhecido mais próximo (`Farinha`), usando a distância de edição entre palavras e a popularidade do ingrediente para desempate. A mesma regra serve para a busca de receitas.
 
 ## Por que existem duas tabelas associativas?
 
