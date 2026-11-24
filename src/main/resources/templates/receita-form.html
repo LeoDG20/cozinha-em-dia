@@ -50,8 +50,7 @@
 
     <fieldset class="bloco">
       <legend>Ingredientes</legend>
-      <p class="dica">Nomes digitados com erro são corrigidos ou o sistema sugere alternativas. Exemplo: “farna” vira “Farinha”.</p>
-      <div id="lista-ingredientes-form">
+            <div id="lista-ingredientes-form">
         <div class="linha-ingrediente" data-linha th:each="l : ${linhasIngredientes}">
           <div class="campo-nome"><input type="text" name="ingNome" th:value="${l.nome()}" class="js-ingrediente" list="lista-ingredientes" autocomplete="off" placeholder="Ingrediente" aria-label="Ingrediente"></div>
           <input type="text" name="ingQtd" th:value="${l.quantidade()}" inputmode="decimal" placeholder="Qtd." aria-label="Quantidade">

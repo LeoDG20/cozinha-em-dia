@@ -7,7 +7,6 @@
   <div class="page-head">
     <div>
       <h1>Despensa</h1>
-      <p class="muted">O que você tem em casa. As quantidades são usadas para dizer quais receitas dá para fazer.</p>
     </div>
     <div class="acoes">
       <a class="btn btn-secondary" th:href="@{/mercado}">Lista de mercado</a>
@@ -30,7 +29,7 @@
           <button class="btn btn-primary" type="submit">Adicionar</button>
         </form>
         <datalist id="lista-ingredientes"><option th:each="n : ${sugestoes}" th:value="${n}"></option></datalist>
-        <p class="muted" style="margin-top:10px;font-size:13px">Se o ingrediente já existe, a quantidade é somada (1 kg e 200 g viram 1,2 kg). Medidas caseiras (xícara, colher) também valem: 2 xícaras de farinha equivalem a cerca de 240 g.</p>
+        <p class="muted" style="margin-top:10px;font-size:13px">Quantidades de um item que já existe são somadas. Xícara e colher também valem.</p>
       </section>
 
       <div class="tabela-wrap" th:if="${!#lists.isEmpty(itens)}">
