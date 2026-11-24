@@ -3,6 +3,7 @@
   <nav class="main-nav">
     <a th:href="@{/}">Visão geral</a>
     <a th:href="@{/receitas}">Receitas</a>
+    <a th:href="@{/compartilhadas}">Compartilhadas<span class="nav-badge" th:if="${novasCompartilhadas != null && novasCompartilhadas > 0}" th:text="${novasCompartilhadas}">1</span></a>
     <a th:href="@{/despensa}">Minha despensa</a>
     <a th:href="@{/o-que-posso-fazer}">O que posso fazer?</a>
   </nav>
