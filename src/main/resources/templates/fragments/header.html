@@ -5,14 +5,12 @@
   <th:block th:replace="~{fragments/icones :: sprite}"></th:block>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" th:href="@{/}">Cozinha em Dia</a>
+      <a class="brand" th:href="@{/}"><svg class="marca" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 15h22v2a9 9 0 01-9 9h-4a9 9 0 01-9-9z" fill="currentColor"/><path d="M11 11c0-2.500 2-2.500 2-5M17 11c0-2.500 2-2.500 2-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Cozinha em Dia</a>
       <nav class="main-nav" aria-label="Principal">
         <a th:href="@{/}">Início</a>
-        <a th:href="@{/receitas}">Receitas</a>
+        <a th:href="@{/receitas}" data-tambem="/o-que-posso-fazer">Receitas</a>
         <a th:href="@{/despensa}">Despensa</a>
-        <a th:href="@{/o-que-posso-fazer}">O que posso fazer</a>
-        <a th:href="@{/mercado}">Lista de mercado</a>
-        <a th:href="@{/medidas}">Medidas</a>
+        <a th:href="@{/mercado}">Mercado</a>
         <a th:href="@{/amigos}" data-tambem="/compartilhadas">Amigos<span class="nav-badge" th:if="${novidadesAmigos != null && novidadesAmigos > 0}" th:text="${novidadesAmigos}">1</span></a>
       </nav>
       <div class="user-menu">

@@ -7,39 +7,51 @@
   <div class="page-head">
     <div>
       <h1>Olá, <span th:text="${nome}">nome</span></h1>
-      <p class="muted" th:if="${qtdDisponiveis > 0}"><span th:text="${qtdDisponiveis}">3</span> receita(s) podem ser preparadas agora com o que há na despensa.</p>
-      <p class="muted" th:if="${qtdDisponiveis == 0}">Nenhuma receita está completa com a despensa atual. Veja abaixo o que falta em cada uma.</p>
+      <p class="muted" th:if="${qtdDisponiveis > 0}" th:text="${qtdDisponiveis == 1 ? 'Uma receita está pronta para fazer com o que você tem.' : qtdDisponiveis + ' receitas estão prontas para fazer com o que você tem.'}">Receitas prontas.</p>
+      <p class="muted" th:if="${qtdDisponiveis == 0}">Nenhuma receita está completa com a despensa atual.</p>
     </div>
     <div class="acoes">
       <a class="btn btn-primary" th:href="@{/receitas/nova}"><svg class="i"><use href="#i-mais"/></svg>Nova receita</a>
-      <a class="btn btn-secondary" th:href="@{/despensa}">Abrir despensa</a>
     </div>
   </div>
 
   <div class="alerta sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
 
-  <div class="resumo">
-    <div><span>Receitas</span><strong th:text="${qtdReceitas}">0</strong></div>
-    <div><span>Ingredientes na despensa</span><strong th:text="${qtdItens}">0</strong></div>
-    <div><span>Prontas para preparar</span><strong th:text="${qtdDisponiveis}">0</strong></div>
-    <div><span>Faltam poucos itens</span><strong th:text="${qtdParciais}">0</strong></div>
-  </div>
-
-  <section class="secao">
-    <div class="secao-cab"><h2>Para cozinhar agora</h2><a class="link-seta" th:href="@{/receitas}">Todas as receitas</a></div>
-    <div class="grade" th:if="${!#lists.isEmpty(destaques)}">
-      <th:block th:each="item : ${destaques}"><th:block th:replace="~{fragments/cartao :: cartao(${item}, null, false)}"></th:block></th:block>
-    </div>
-    <div class="vazio" th:if="${#lists.isEmpty(destaques)}"><h2>Nenhuma receita cadastrada</h2><p>Cadastre uma receita para compará-la com a despensa.</p><a class="btn btn-primary" th:href="@{/receitas/nova}">Cadastrar receita</a></div>
-  </section>
-
-  <section class="secao">
-    <div class="atalhos">
-      <a class="atalho" th:href="@{/despensa}"><span><strong>Atualizar a despensa</strong><small>Quantidades e lista de compras</small></span></a>
-      <a class="atalho" th:href="@{/o-que-posso-fazer}"><span><strong>O que posso fazer</strong><small>Receitas por disponibilidade</small></span></a>
-      <a class="atalho" th:href="@{/compartilhadas}"><span><strong>Compartilhadas comigo</strong><small>Receitas enviadas por outras pessoas</small></span></a>
+  <section class="destaque" th:if="${!#lists.isEmpty(destaques)}" th:with="d=${destaques[0]}">
+    <a class="destaque-foto" th:href="@{/receitas/{id}(id=${d.receita.id})}" th:attr="aria-label=${'Abrir ' + d.receita.nome}" tabindex="-1">
+      <img th:if="${d.receita.capaUrl != null}" th:src="${d.receita.capaUrl}" alt="">
+      <span class="sem-foto" th:if="${d.receita.capaUrl == null}"><svg class="i"><use href="#i-prato"/></svg></span>
+    </a>
+    <div class="destaque-texto">
+      <p class="sobrelinha" th:text="${d.status.classe == 'available' ? 'Pronta para fazer agora' : 'A mais próxima de ficar pronta'}">Pronta para fazer agora</p>
+      <h2><a th:href="@{/receitas/{id}(id=${d.receita.id})}" th:text="${d.receita.nome}">Nome da receita</a></h2>
+      <p class="descricao" th:if="${d.receita.descricao != null && !d.receita.descricao.isBlank()}" th:text="${d.receita.descricao}">Descrição</p>
+      <p class="meta">
+        <span th:if="${d.receita.tempoPreparoMin != null}"><svg class="i"><use href="#i-relogio"/></svg><span th:text="${d.receita.tempoPreparoMin + ' min'}">20 min</span></span>
+        <span th:if="${d.receita.porcoes != null}"><svg class="i"><use href="#i-pessoas"/></svg><span th:text="${d.receita.porcoes == 1 ? '1 porção' : d.receita.porcoes + ' porções'}">2 porções</span></span>
+      </p>
+      <p class="faltam-linha" th:if="${!#lists.isEmpty(d.faltantes)}" th:text="${'Falta: ' + d.faltantes[0].nome + (d.faltantes.size() > 1 ? ' e mais ' + (d.faltantes.size() - 1) : '')}">Falta: ingrediente</p>
+      <div class="acoes">
+        <a class="btn btn-primary" th:href="@{/receitas/{id}(id=${d.receita.id})}">Ver receita</a>
+        <a class="btn btn-secondary" th:if="${d.status.classe != 'available'}" th:href="@{/mercado(f=1,receitas=${d.receita.id})}">Lista de mercado</a>
+      </div>
     </div>
   </section>
+
+  <section class="secao" th:if="${destaques.size() > 1}">
+    <div class="secao-cab"><h2>Outras opções</h2><a class="link-seta" th:href="@{/receitas}">Todas as receitas</a></div>
+    <div class="grade">
+      <th:block th:each="item : ${destaques.subList(1, destaques.size())}"><th:block th:replace="~{fragments/cartao :: cartao(${item}, null)}"></th:block></th:block>
+    </div>
+  </section>
+
+  <div class="vazio" th:if="${#lists.isEmpty(destaques)}"><h2>Nenhuma receita cadastrada</h2><p>Cadastre uma receita para compará-la com a despensa.</p><a class="btn btn-primary" th:href="@{/receitas/nova}">Cadastrar receita</a></div>
+
+  <p class="linha-resumo" th:if="${!#lists.isEmpty(destaques)}">
+    <span th:text="${qtdItens == 1 ? '1 ingrediente' : qtdItens + ' ingredientes'}">13 ingredientes</span> na despensa ·
+    <span th:text="${qtdReceitas == 1 ? '1 receita cadastrada' : qtdReceitas + ' receitas cadastradas'}">17 receitas</span> ·
+    <a th:href="@{/despensa}">Abrir despensa</a>
+  </p>
 </main>
 </body>
 </html>

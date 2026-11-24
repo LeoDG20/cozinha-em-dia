@@ -7,7 +7,7 @@
   <div class="page-head">
     <div>
       <h1>Receitas</h1>
-      <p class="muted"><span th:text="${total}">0</span> cadastradas. A situação de cada uma considera o que está na sua despensa.</p>
+      <p class="muted" th:text="${total == 1 ? '1 receita cadastrada' : total + ' receitas cadastradas'}">0 receitas</p>
     </div>
     <div class="acoes"><a class="btn btn-primary" th:href="@{/receitas/nova}"><svg class="i"><use href="#i-mais"/></svg>Nova receita</a></div>
   </div>
@@ -23,6 +23,7 @@
       <a class="filtro" th:classappend="${situacao == '' ? 'ativo' : ''}" th:href="@{/receitas(q=${q})}">Todas</a>
       <a class="filtro" th:classappend="${situacao == 'disponivel' ? 'ativo' : ''}" th:href="@{/receitas(q=${q},situacao='disponivel')}">Posso fazer agora</a>
       <a class="filtro" th:classappend="${situacao == 'parcial' ? 'ativo' : ''}" th:href="@{/receitas(q=${q},situacao='parcial')}">Faltam poucos itens</a>
+      <a class="filtro" th:href="@{/o-que-posso-fazer}">Comparação detalhada</a>
     </div>
   </form>
 
@@ -30,7 +31,7 @@
     <a th:each="s : ${sugestoes}" th:href="@{/receitas(q=${s})}" th:text="${s}">farinha</a>?</p>
 
   <div class="grade" th:if="${!#lists.isEmpty(analises)}">
-    <th:block th:each="a : ${analises}"><th:block th:replace="~{fragments/cartao :: cartao(${a}, ${compartilhadoCom.get(a.receita.id)}, true)}"></th:block></th:block>
+    <th:block th:each="a : ${analises}"><th:block th:replace="~{fragments/cartao :: cartao(${a}, ${compartilhadoCom.get(a.receita.id)})}"></th:block></th:block>
   </div>
 
   <div class="vazio" th:if="${#lists.isEmpty(analises) && total == 0}">
