@@ -21,7 +21,7 @@ public class DashboardController {
         model.addAttribute("qtdItens", despensa.countByUsuarioId(id));
         model.addAttribute("qtdDisponiveis", analises.stream().filter(a -> a.getStatus()==DisponibilidadeService.StatusDisponibilidade.DISPONIVEL).count());
         model.addAttribute("qtdParciais", analises.stream().filter(a -> a.getStatus()==DisponibilidadeService.StatusDisponibilidade.PARCIAL).count());
-        model.addAttribute("destaques", analises.stream().limit(3).toList());
+        model.addAttribute("destaques", analises.stream().sorted(java.util.Comparator.comparing(DisponibilidadeService.AnaliseReceita::getStatus)).limit(6).toList());
         return "dashboard";
     }
 }
