@@ -61,7 +61,7 @@
       </div>
       <button class="btn-adicionar" type="button" data-adicionar data-lista="lista-ingredientes-form" data-modelo="modelo-ingrediente">Adicionar ingrediente</button>
       <datalist id="lista-ingredientes"><option th:each="s : ${sugestoes}" th:value="${s}"></option></datalist>
-      <datalist id="lista-unidades"><option value="g"><option value="kg"><option value="ml"><option value="l"><option value="unidade"><option value="colher"><option value="xícara"><option value="dente"></datalist>
+      <datalist id="lista-unidades"><option value="g"><option value="kg"><option value="ml"><option value="l"><option value="unidade"><option value="colher"><option value="colher de chá"><option value="xícara"><option value="dente"></datalist>
       <template id="modelo-ingrediente">
         <div class="linha-ingrediente" data-linha>
           <div class="campo-nome"><input type="text" name="ingNome" class="js-ingrediente" list="lista-ingredientes" autocomplete="off" placeholder="Ingrediente" aria-label="Ingrediente"></div>

@@ -11,7 +11,9 @@
         <a th:href="@{/receitas}">Receitas</a>
         <a th:href="@{/despensa}">Despensa</a>
         <a th:href="@{/o-que-posso-fazer}">O que posso fazer</a>
-        <a th:href="@{/compartilhadas}">Compartilhadas<span class="nav-badge" th:if="${novasCompartilhadas != null && novasCompartilhadas > 0}" th:text="${novasCompartilhadas}">1</span></a>
+        <a th:href="@{/mercado}">Lista de mercado</a>
+        <a th:href="@{/medidas}">Medidas</a>
+        <a th:href="@{/amigos}" data-tambem="/compartilhadas">Amigos<span class="nav-badge" th:if="${novidadesAmigos != null && novidadesAmigos > 0}" th:text="${novidadesAmigos}">1</span></a>
       </nav>
       <div class="user-menu">
         <span class="avatar" aria-hidden="true" th:text="${#strings.substring(#authentication.principal.nome,0,1).toUpperCase()}">C</span>

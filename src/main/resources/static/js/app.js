@@ -10,6 +10,7 @@
   document.querySelectorAll('.main-nav a').forEach(function (a) {
     var alvo = (a.getAttribute('href') || '').replace(/\/$/, '') || '/';
     if (alvo === caminho || (alvo !== '/' && caminho.indexOf(alvo + '/') === 0)) a.classList.add('active');
+    else if (a.getAttribute('data-tambem') && caminho.indexOf(a.getAttribute('data-tambem')) === 0) a.classList.add('active');
   });
 
   // Confirmação antes de ações destrutivas.
@@ -208,6 +209,22 @@
       return;
     }
     if (e.target.closest && e.target.closest('[data-imprimir]')) window.print();
+  });
+
+  // Formulários que se enviam ao marcar uma opção, e "marcar todas".
+  document.addEventListener('change', function (e) {
+    var form = e.target.closest && e.target.closest('form[data-auto-enviar]');
+    if (form && e.target.type === 'checkbox') form.submit();
+  });
+  document.addEventListener('click', function (e) {
+    var todos = e.target.closest && e.target.closest('[data-marcar-todos]');
+    if (!todos) return;
+    var form = document.querySelector(todos.getAttribute('data-marcar-todos'));
+    if (!form) return;
+    var caixas = form.querySelectorAll('input[type=checkbox]');
+    var algumaDesmarcada = Array.prototype.some.call(caixas, function (c) { return !c.checked; });
+    caixas.forEach(function (c) { c.checked = algumaDesmarcada; });
+    form.submit();
   });
 
   // Ao abrir "Adaptar receita", o cursor já fica no campo do nome.

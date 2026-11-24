@@ -5,13 +5,10 @@
 <main class="acesso">
   <div class="acesso-form">
     <a class="brand" th:href="@{/login}">Cozinha em Dia</a>
-    <div>
-      <h1>Criar conta</h1>
-      <p class="muted" style="margin-top:6px">Leva menos de um minuto.</p>
-    </div>
+    <h1>Criar conta</h1>
     <div class="alerta erro" th:if="${erro}" th:text="${erro}" style="margin:0"></div>
     <form th:action="@{/cadastro}" method="post">
-      <label>Nome<input type="text" name="nome" required maxlength="100" autocomplete="name"></label>
+      <label>Nome<input type="text" name="nome" required maxlength="100" autocomplete="name" autofocus></label>
       <label>E-mail<input type="email" name="email" required autocomplete="email"></label>
       <label>Senha <small>mínimo de 6 caracteres</small><input type="password" name="senha" minlength="6" required autocomplete="new-password"></label>
       <label>Confirme a senha<input type="password" name="confirmarSenha" minlength="6" required autocomplete="new-password"></label>
@@ -19,9 +16,6 @@
     </form>
     <p class="acesso-rodape">Já tem conta? <a th:href="@{/login}">Entrar</a></p>
   </div>
-  <figure class="acesso-capa" style="margin:0;background-image:url('https://commons.wikimedia.org/wiki/Special:FilePath/Pao_de_queijo_brasil.jpg?width=1400')">
-    <figcaption>Guarde as receitas que você faz e compartilhe com quem cozinha com você.<small>Foto: Pao de queijo brasil, Wikimedia Commons, CC BY-SA 4.0</small></figcaption>
-  </figure>
 </main>
 </body>
 </html>

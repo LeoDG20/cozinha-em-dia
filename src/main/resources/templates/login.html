@@ -5,23 +5,17 @@
 <main class="acesso">
   <div class="acesso-form">
     <a class="brand" th:href="@{/login}">Cozinha em Dia</a>
-    <div>
-      <h1>Entrar</h1>
-      <p class="muted" style="margin-top:6px">Acesse suas receitas e sua despensa.</p>
-    </div>
+    <h1>Entrar</h1>
     <div class="alerta erro" th:if="${param.erro}" style="margin:0">E-mail ou senha inválidos.</div>
     <div class="alerta sucesso" th:if="${param.saiu}" style="margin:0">Você saiu da sua conta.</div>
     <form th:action="@{/login}" method="post">
-      <label>E-mail<input type="email" name="email" required autocomplete="email"></label>
+      <label>E-mail<input type="email" name="email" required autocomplete="email" autofocus></label>
       <label>Senha<input type="password" name="senha" required autocomplete="current-password"></label>
       <button class="btn btn-primary btn-block" type="submit">Entrar</button>
     </form>
     <p class="acesso-rodape">Ainda não tem conta? <a th:href="@{/cadastro}">Cadastre-se</a></p>
-    <div class="demo-conta"><strong>Conta de demonstração</strong>demo@cozinha.local, senha demo123</div>
+    <p class="demo-conta">Conta de demonstração: <b>demo@cozinha.local</b>, senha <b>demo123</b></p>
   </div>
-  <figure class="acesso-capa" style="margin:0;background-image:url('https://commons.wikimedia.org/wiki/Special:FilePath/Spaghetti_aglio_e_olio_KB.jpg?width=1400')">
-    <figcaption>Receitas, despensa e lista de compras na mesma conta.<small>Foto: Spaghetti aglio e olio KB, Wikimedia Commons, CC BY-SA 4.0</small></figcaption>
-  </figure>
 </main>
 </body>
 </html>
