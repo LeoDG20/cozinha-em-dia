@@ -21,9 +21,20 @@ public class Receita {
     @Column(name = "tempo_preparo_min")
     private Integer tempoPreparoMin;
     private Integer porcoes;
+    @Column(name = "imagem_arquivo", length = 80)
+    private String imagemArquivo;
+    @Column(name = "imagem_url", length = 500)
+    private String imagemUrl;
+    @Column(name = "video_url", length = 300)
+    private String videoUrl;
+    @Column(name = "video_arquivo", length = 80)
+    private String videoArquivo;
     @OneToMany(mappedBy = "receita", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private List<ReceitaIngrediente> ingredientes = new ArrayList<>();
+    @OneToMany(mappedBy = "receita", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("ordem ASC")
+    private List<EtapaReceita> etapas = new ArrayList<>();
 
     public Receita() {}
     public Long getId() { return id; }
@@ -40,4 +51,15 @@ public class Receita {
     public Integer getPorcoes() { return porcoes; }
     public void setPorcoes(Integer porcoes) { this.porcoes = porcoes; }
     public List<ReceitaIngrediente> getIngredientes() { return ingredientes; }
+    public List<EtapaReceita> getEtapas() { return etapas; }
+    public String getImagemArquivo() { return imagemArquivo; }
+    public void setImagemArquivo(String imagemArquivo) { this.imagemArquivo = imagemArquivo; }
+    public String getImagemUrl() { return imagemUrl; }
+    public void setImagemUrl(String imagemUrl) { this.imagemUrl = imagemUrl; }
+    public String getVideoUrl() { return videoUrl; }
+    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
+    public String getVideoArquivo() { return videoArquivo; }
+    public void setVideoArquivo(String videoArquivo) { this.videoArquivo = videoArquivo; }
+    @Transient public boolean isTemImagem() { return (imagemArquivo != null && !imagemArquivo.isBlank()) || (imagemUrl != null && !imagemUrl.isBlank()); }
+    @Transient public String getVideoYoutubeId() { return br.com.cozinhaemdia.service.YoutubeUtil.extrairId(videoUrl).orElse(null); }
 }
