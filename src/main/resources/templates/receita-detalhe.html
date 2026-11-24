@@ -1,1 +1,102 @@
-<!doctype html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${receita.nome} + ' · Cozinha em Dia'">Receita · Cozinha em Dia</title><link rel="stylesheet" th:href="@{/css/app.css}"></head><body><div th:replace="~{fragments/header :: header}"></div><main class="page narrow-page"><a class="back-link" th:href="@{/receitas}">← Voltar às receitas</a><div class="alert success" th:if="${sucesso}" th:text="${sucesso}"></div><section class="detail-hero"><div class="detail-art">✳</div><div><p class="eyebrow">RECEITA CADASTRADA</p><h1 th:text="${receita.nome}">Nome da receita</h1><p class="muted" th:text="${receita.descricao}">Descrição da receita</p><div class="detail-meta"><span>◷ <b th:text="${receita.tempoPreparoMin != null ? receita.tempoPreparoMin : '-'}">25</b> min</span><span>♧ <b th:text="${receita.porcoes != null ? receita.porcoes : '-'}">2</b> porções</span></div></div><a class="btn btn-outline btn-small" th:href="@{/receitas/{id}/editar(id=${receita.id})}">✎ Editar</a></section><div class="detail-columns"><section class="panel"><div class="section-heading"><h2>Ingredientes</h2><span class="count-pill" th:text="${itens.size()}">4</span></div><ul class="ingredient-checklist"><li th:each="item : ${itens}"><span class="check-box"></span><span th:text="${item.ingrediente.nome}">Ingrediente</span><strong><span th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(item.quantidade)}">2</span> <span th:text="${item.unidade}">unidade</span></strong></li></ul><a class="text-link" th:href="@{/o-que-posso-fazer}">Conferir na despensa →</a></section><section class="panel"><div class="section-heading"><h2>Modo de preparo</h2></div><div class="preparation-text" th:text="${receita.modoPreparo}">1. Misture os ingredientes.</div></section></div></main></body></html>
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${receita.nome} + ' · Cozinha em Dia'">Receita · Cozinha em Dia</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}"><link rel="stylesheet" th:href="@{/css/tema.css}"><script th:src="@{/js/app.js}" defer></script>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="page">
+  <a class="back-link" th:href="@{${dono ? '/receitas' : '/compartilhadas'}}" th:text="${dono ? '← Voltar às receitas' : '← Voltar às compartilhadas'}">← Voltar</a>
+  <div class="alert success" th:if="${sucesso}" th:text="${sucesso}"></div>
+  <div class="alert aviso" th:if="${avisos != null}"><strong>Corrigimos automaticamente:</strong><ul><li th:each="aviso : ${avisos}" th:text="${aviso}"></li></ul></div>
+  <div class="alert error" th:if="${erro}" th:text="${erro}"></div>
+
+  <section class="receita-capa">
+    <div class="capa" th:classappend="${'tom-' + receita.tom}">
+      <img th:if="${receita.capaUrl != null}" th:src="${receita.capaUrl}" th:alt="${'Foto de ' + receita.nome}">
+      <span class="capa-emoji" th:if="${receita.capaUrl == null}" th:text="${receita.emoji}">🍽️</span>
+    </div>
+    <div class="receita-info">
+      <p class="eyebrow" th:text="${dono ? 'SUA RECEITA' : 'COMPARTILHADA POR ' + #strings.toUpperCase(receita.usuario.nome)}">RECEITA</p>
+      <h1 th:text="${receita.nome}">Nome da receita</h1>
+      <p class="muted" th:if="${receita.descricao != null && !receita.descricao.isBlank()}" th:text="${receita.descricao}">Descrição</p>
+      <div class="meta-pills">
+        <span>◷ <b th:text="${receita.tempoPreparoMin != null ? receita.tempoPreparoMin : '-'}">25</b> min</span>
+        <span>♧ <b th:text="${receita.porcoes != null ? receita.porcoes : '-'}">2</b> porções</span>
+        <span th:text="${itens.size() + ' ingredientes'}">4 ingredientes</span>
+      </div>
+      <div class="status-banner" th:classappend="${analise.status.classe}">
+        <span th:text="${analise.status.classe == 'available' ? '✓' : (analise.status.classe == 'partial' ? '◒' : '＋')}">✓</span>
+        <span>
+          <span th:text="${analise.status.classe == 'available' ? 'Você tem tudo para preparar esta receita agora.' : (analise.status.classe == 'partial' ? 'Quase lá: faltam alguns ingredientes na sua despensa.' : 'Você ainda não tem os ingredientes principais na despensa.')}">Status</span>
+          <span class="faltam" th:if="${!#lists.isEmpty(analise.faltantes)}"><span class="missing-chip" th:each="f : ${analise.faltantes}"><span th:text="${f.nome}">Ovo</span><b th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(f.quantidadeFaltante) + ' ' + f.unidade}">2 un</b></span></span>
+        </span>
+      </div>
+      <div class="acoes-receita" th:if="${dono}">
+        <a class="btn btn-outline btn-small" th:href="@{/receitas/{id}/editar(id=${receita.id})}">✎ Editar</a>
+        <a class="btn btn-outline btn-small" href="#compartilhar">⇪ Compartilhar</a>
+        <form th:action="@{/receitas/{id}/excluir(id=${receita.id})}" method="post" data-confirmar="Excluir esta receita? Fotos e vídeos enviados também serão apagados."><button class="btn btn-outline btn-small" type="submit">Excluir</button></form>
+      </div>
+      <div class="acoes-receita" th:if="${!dono && recebido != null}">
+        <form th:if="${!recebido.copiada}" th:action="@{/receitas/{id}/salvar-copia(id=${receita.id})}" method="post"><button class="btn btn-primary btn-small" type="submit">Salvar na minha conta</button></form>
+        <span class="selo" th:if="${recebido.copiada}">Já salva na sua conta</span>
+        <form th:action="@{/compartilhamentos/{id}/remover(id=${recebido.id})}" method="post" data-confirmar="Remover esta receita da sua lista de compartilhadas?"><button class="btn btn-outline btn-small" type="submit">Remover da lista</button></form>
+      </div>
+      <p class="nota-recebida" th:if="${!dono && recebido != null && recebido.mensagem != null}">“<span th:text="${recebido.mensagem}">Mensagem</span>” <b th:text="${'— ' + receita.usuario.nome}"></b></p>
+    </div>
+  </section>
+
+  <section class="videos" th:if="${receita.videoYoutubeId != null || receita.videoArquivo != null}">
+    <div class="video-wrap" th:if="${receita.videoYoutubeId != null}">
+      <iframe th:src="${receita.videoEmbedUrl}" title="Videoaula no YouTube" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
+    </div>
+    <div class="video-wrap proprio" th:if="${receita.videoArquivo != null}">
+      <video controls preload="metadata" th:src="@{/midia/{nome}(nome=${receita.videoArquivo})}">Seu navegador não reproduz este vídeo.</video>
+    </div>
+  </section>
+
+  <div class="detail-columns">
+    <section class="panel">
+      <div class="section-heading"><h2>Ingredientes</h2><span class="count-pill" th:text="${itens.size()}">4</span></div>
+      <ul class="ingredient-checklist">
+        <li th:each="item : ${itens}" th:classappend="${#lists.contains(analise.faltantes.![nome], item.ingrediente.nome) ? 'falta' : ''}">
+          <span class="check-box"></span><span th:text="${item.ingrediente.nome}">Ingrediente</span>
+          <strong><span th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(item.quantidade)}">2</span> <span th:text="${item.unidade}">unidade</span></strong>
+        </li>
+      </ul>
+      <a class="text-link" th:href="@{/despensa}">Atualizar minha despensa →</a>
+    </section>
+    <section class="panel">
+      <div class="section-heading"><h2>Modo de preparo</h2><span class="count-pill" th:text="${passos.size()}">3</span></div>
+      <ol class="passos">
+        <li class="passo" th:each="p : ${passos}">
+          <span class="passo-num" th:text="${p.ordem}">1</span>
+          <div>
+            <p th:text="${p.texto}">Misture os ingredientes.</p>
+            <img th:if="${p.foto != null}" th:src="@{/midia/{nome}(nome=${p.foto})}" th:alt="${'Foto da etapa ' + p.ordem}" data-ampliar loading="lazy">
+          </div>
+        </li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel" id="compartilhar" th:if="${dono}" style="margin-top:22px">
+    <div class="section-heading"><h2>Compartilhar com outra pessoa</h2></div>
+    <p class="muted" style="margin-bottom:14px">Informe o e-mail de quem já tem conta no Cozinha em Dia. A pessoa poderá ver a receita e salvar uma cópia própria.</p>
+    <form class="compartilhar" th:action="@{/receitas/{id}/compartilhar(id=${receita.id})}" method="post">
+      <input type="email" name="email" placeholder="email@exemplo.com" required aria-label="E-mail do destinatário">
+      <textarea name="mensagem" maxlength="200" placeholder="Mensagem opcional (até 200 caracteres)" aria-label="Mensagem"></textarea>
+      <button class="btn btn-primary" type="submit" style="justify-self:start">Compartilhar receita</button>
+    </form>
+    <ul class="destinatarios" th:if="${!#lists.isEmpty(destinatarios)}">
+      <li th:each="c : ${destinatarios}">
+        <span><b th:text="${c.destino.nome}">Nome</b> <span class="muted" th:text="${c.destino.email}">email</span> <span class="selo" th:if="${c.copiada}">salvou uma cópia</span></span>
+        <form th:action="@{/compartilhamentos/{id}/remover(id=${c.id})}" method="post" data-confirmar="Deixar de compartilhar com esta pessoa?"><button class="link-botao" type="submit">Deixar de compartilhar</button></form>
+      </li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

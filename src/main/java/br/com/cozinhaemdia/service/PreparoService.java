@@ -78,6 +78,9 @@ public class PreparoService {
         for (EtapaReceita etapa : receita.getEtapas()) arquivos.remover(etapa.getImagemArquivo());
     }
 
+    /** Apaga um arquivo isolado do disco, se existir. */
+    public void removerArquivo(String nome) { arquivos.remover(nome); }
+
     private void aplicarImagem(Receita receita, Midia midia) {
         String url = limpar(midia.imagemUrl());
         if (midia.removerImagem()) {

@@ -63,5 +63,16 @@ public class Receita {
     public String getVideoArquivo() { return videoArquivo; }
     public void setVideoArquivo(String videoArquivo) { this.videoArquivo = videoArquivo; }
     @Transient public boolean isTemImagem() { return (imagemArquivo != null && !imagemArquivo.isBlank()) || (imagemUrl != null && !imagemUrl.isBlank()); }
+    /** Endereço da imagem de capa: arquivo enviado (servido em /midia) ou endereço externo informado. */
+    @Transient public String getCapaUrl() {
+        if (imagemArquivo != null && !imagemArquivo.isBlank()) return "/midia/" + imagemArquivo;
+        return imagemUrl != null && !imagemUrl.isBlank() ? imagemUrl : null;
+    }
+    @Transient public String getEmoji() { return br.com.cozinhaemdia.service.AparenciaReceita.emoji(nome); }
+    @Transient public int getTom() { return br.com.cozinhaemdia.service.AparenciaReceita.tom(nome); }
+    @Transient public String getVideoEmbedUrl() {
+        String id = getVideoYoutubeId();
+        return id == null ? null : br.com.cozinhaemdia.service.YoutubeUtil.enderecoIncorporado(id);
+    }
     @Transient public String getVideoYoutubeId() { return br.com.cozinhaemdia.service.YoutubeUtil.extrairId(videoUrl).orElse(null); }
 }

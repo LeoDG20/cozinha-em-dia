@@ -1,1 +1,106 @@
-<!doctype html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${edicao ? 'Editar receita' : 'Nova receita'} + ' · Cozinha em Dia'">Receita · Cozinha em Dia</title><link rel="stylesheet" th:href="@{/css/app.css}"></head><body><div th:replace="~{fragments/header :: header}"></div><main class="page narrow-page"><a class="back-link" th:href="@{/receitas}">← Voltar às receitas</a><div class="page-heading"><p class="eyebrow">SEU CADERNO DIGITAL</p><h1 th:text="${edicao ? 'Editar receita' : 'Nova receita'}">Nova receita</h1><p class="muted">Informe os detalhes e os ingredientes necessários para preparar o prato.</p></div><div class="alert error" th:if="${erro}" th:text="${erro}"></div><form class="panel form-stack" th:action="${formAction}" method="post"><div class="form-section-title"><span>01</span><div><h2>Informações básicas</h2><p>Um nome claro facilita encontrar a receita depois.</p></div></div><label>Nome da receita<input type="text" name="nome" th:value="${receita != null ? receita.nome : ''}" placeholder="Ex.: Risoto de cogumelos" maxlength="120" required></label><label>Descrição curta <span class="optional">(opcional)</span><input type="text" name="descricao" th:value="${receita != null ? receita.descricao : ''}" placeholder="Conte em uma frase o que torna essa receita especial."></label><div class="two-columns"><label>Tempo de preparo (minutos)<input type="number" name="tempoPreparoMin" min="1" th:value="${receita != null ? receita.tempoPreparoMin : ''}" placeholder="30"></label><label>Porções<input type="number" name="porcoes" min="1" th:value="${receita != null ? receita.porcoes : ''}" placeholder="2"></label></div><div class="form-section-title spaced"><span>02</span><div><h2>Ingredientes</h2><p>Uma linha para cada ingrediente, sempre na mesma unidade da despensa.</p></div></div><div class="helper-box"><strong>Como preencher</strong><code>Nome do ingrediente | quantidade | unidade</code><span>Exemplo: Ovo | 2 | unidade &nbsp; · &nbsp; Farinha | 150 | g &nbsp; · &nbsp; Leite | 200 | ml</span></div><label>Lista de ingredientes<textarea name="ingredientesTexto" rows="7" required th:text="${ingredientesTexto}" placeholder="Ovo | 2 | unidade&#10;Queijo | 40 | g&#10;Azeite | 5 | ml"></textarea></label><div class="form-section-title spaced"><span>03</span><div><h2>Modo de preparo</h2><p>Descreva as etapas em ordem.</p></div></div><label>Passo a passo<textarea name="modoPreparo" rows="6" required th:text="${receita != null ? receita.modoPreparo : ''}" placeholder="1. Separe os ingredientes...&#10;2. Prepare...&#10;3. Sirva... "></textarea></label><div class="form-footer"><a class="btn btn-outline" th:href="@{/receitas}">Cancelar</a><button type="submit" class="btn btn-primary" th:text="${edicao ? 'Salvar alterações' : 'Salvar receita'}">Salvar receita</button></div></form></main></body></html>
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${edicao ? 'Editar receita' : 'Nova receita'} + ' · Cozinha em Dia'">Receita · Cozinha em Dia</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}"><link rel="stylesheet" th:href="@{/css/tema.css}"><script th:src="@{/js/app.js}" defer></script>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<main class="page narrow-page">
+  <a class="back-link" th:href="@{/receitas}">← Voltar às receitas</a>
+  <div class="page-heading">
+    <p class="eyebrow">SEU CADERNO DIGITAL</p>
+    <h1 th:text="${edicao ? 'Editar receita' : 'Nova receita'}">Nova receita</h1>
+    <p class="muted">Conte como preparar o prato e acrescente fotos e vídeos para servir de tutorial.</p>
+  </div>
+  <div class="alert error" th:if="${erro}" th:text="${erro}"></div>
+
+  <form class="panel form-stack" th:action="${formAction}" method="post" enctype="multipart/form-data">
+    <div class="form-section-title"><span>01</span><div><h2>Informações básicas</h2><p>Um nome claro facilita encontrar a receita depois.</p></div></div>
+    <label>Nome da receita<input type="text" name="nome" th:value="${form.nome()}" placeholder="Ex.: Risoto de cogumelos" maxlength="120" required></label>
+    <label>Descrição curta <span class="optional">(opcional)</span><input type="text" name="descricao" th:value="${form.descricao()}" placeholder="Conte em uma frase o que torna essa receita especial."></label>
+    <div class="two-columns">
+      <label>Tempo de preparo (minutos)<input type="number" name="tempoPreparoMin" min="1" th:value="${form.tempo()}" placeholder="30"></label>
+      <label>Porções<input type="number" name="porcoes" min="1" th:value="${form.porcoes()}" placeholder="2"></label>
+    </div>
+
+    <div class="form-section-title spaced"><span>02</span><div><h2>Foto e videoaula</h2><p>Tudo opcional. A foto aparece na capa; o vídeo, na página da receita.</p></div></div>
+    <div class="midia-grid">
+      <div class="bloco-midia">
+        <h3>Foto da receita <small>(JPG, PNG, GIF ou WebP, até 5 MB)</small></h3>
+        <img class="previa" id="previa-capa" th:src="${receita != null && receita.capaUrl != null ? receita.capaUrl : ''}" th:hidden="${receita == null || receita.capaUrl == null}" alt="Foto atual da receita">
+        <input type="file" name="imagem" accept="image/jpeg,image/png,image/gif,image/webp" data-previa="previa-capa" data-limite="5242880">
+        <label>ou endereço de uma imagem na internet<input type="url" name="imagemUrl" th:value="${form.imagemUrl()}" placeholder="https://..."></label>
+        <label class="check-linha" th:if="${receita != null && receita.temImagem}"><input type="checkbox" name="removerImagem"> Remover a foto atual</label>
+      </div>
+      <div class="bloco-midia">
+        <h3>Videoaula <small>(YouTube ou arquivo seu)</small></h3>
+        <label>Link do YouTube<input type="url" name="videoUrl" th:value="${form.videoUrl()}" placeholder="https://www.youtube.com/watch?v=..."></label>
+        <label>ou envie um vídeo seu <small>(MP4 ou WebM, até 60 MB)</small><input type="file" name="video" accept="video/mp4,video/webm" data-limite="62914560"></label>
+        <p class="muted" th:if="${receita != null && receita.videoArquivo != null}">Esta receita já tem um vídeo enviado. Escolher outro arquivo o substitui.</p>
+        <label class="check-linha" th:if="${receita != null && receita.videoArquivo != null}"><input type="checkbox" name="removerVideo"> Remover o vídeo enviado</label>
+      </div>
+    </div>
+
+    <div class="form-section-title spaced"><span>03</span><div><h2>Ingredientes</h2><p>Se digitar um nome errado, como “farna”, corrigimos para “Farinha” automaticamente.</p></div></div>
+    <div id="lista-ingredientes-form">
+      <div class="linha-ingrediente" data-linha th:each="l : ${linhasIngredientes}">
+        <div class="campo-nome"><input type="text" name="ingNome" th:value="${l.nome()}" class="js-ingrediente" list="lista-ingredientes" autocomplete="off" placeholder="Ingrediente (ex.: Farinha)" aria-label="Ingrediente"></div>
+        <input type="text" name="ingQtd" th:value="${l.quantidade()}" inputmode="decimal" placeholder="Qtd." aria-label="Quantidade">
+        <input type="text" name="ingUn" th:value="${l.unidade()}" list="lista-unidades" placeholder="Unidade" aria-label="Unidade">
+        <button class="btn-remover" type="button" data-remover-linha title="Remover ingrediente" aria-label="Remover ingrediente">×</button>
+      </div>
+    </div>
+    <button class="btn-adicionar" type="button" data-adicionar data-lista="lista-ingredientes-form" data-modelo="modelo-ingrediente">＋ Adicionar ingrediente</button>
+    <datalist id="lista-ingredientes"><option th:each="s : ${sugestoes}" th:value="${s}"></option></datalist>
+    <datalist id="lista-unidades"><option value="g"><option value="kg"><option value="ml"><option value="l"><option value="unidade"><option value="colher"><option value="xícara"><option value="dente"></datalist>
+    <template id="modelo-ingrediente">
+      <div class="linha-ingrediente" data-linha>
+        <div class="campo-nome"><input type="text" name="ingNome" class="js-ingrediente" list="lista-ingredientes" autocomplete="off" placeholder="Ingrediente (ex.: Farinha)" aria-label="Ingrediente"></div>
+        <input type="text" name="ingQtd" inputmode="decimal" placeholder="Qtd." aria-label="Quantidade">
+        <input type="text" name="ingUn" list="lista-unidades" placeholder="Unidade" aria-label="Unidade">
+        <button class="btn-remover" type="button" data-remover-linha title="Remover ingrediente" aria-label="Remover ingrediente">×</button>
+      </div>
+    </template>
+
+    <div class="form-section-title spaced"><span>04</span><div><h2>Modo de preparo</h2><p>Uma etapa por bloco. Cada etapa pode ter uma foto para mostrar como fica.</p></div></div>
+    <div id="lista-etapas">
+      <div class="linha-etapa" data-linha th:each="e, st : ${linhasEtapas}">
+        <span class="num" th:text="${st.count}">1</span>
+        <div>
+          <input type="hidden" name="etapaChave" th:value="${st.index}">
+          <input type="hidden" th:name="${'etapaFotoAtual_' + st.index}" th:value="${e.foto()}">
+          <textarea th:name="${'etapaTexto_' + st.index}" th:text="${e.texto()}" placeholder="Descreva esta etapa" aria-label="Texto da etapa"></textarea>
+          <div class="etapa-foto">
+            <img th:if="${!e.foto().isEmpty()}" th:src="@{/midia/{nome}(nome=${e.foto()})}" alt="Foto atual da etapa" th:id="${'previa-etapa-' + st.index}">
+            <img th:if="${e.foto().isEmpty()}" th:id="${'previa-etapa-' + st.index}" hidden alt="Prévia da foto da etapa">
+            <input type="file" th:name="${'etapaFoto_' + st.index}" accept="image/jpeg,image/png,image/gif,image/webp" th:attr="data-previa=${'previa-etapa-' + st.index}" data-limite="5242880" aria-label="Foto da etapa">
+            <button class="link-botao" type="button" data-tirar-foto th:if="${!e.foto().isEmpty()}">Remover foto atual</button>
+          </div>
+        </div>
+        <button class="btn-remover" type="button" data-remover-linha title="Remover etapa" aria-label="Remover etapa">×</button>
+      </div>
+    </div>
+    <button class="btn-adicionar" type="button" data-adicionar data-lista="lista-etapas" data-modelo="modelo-etapa">＋ Adicionar etapa</button>
+    <template id="modelo-etapa">
+      <div class="linha-etapa" data-linha>
+        <span class="num">1</span>
+        <div>
+          <input type="hidden" name="etapaChave" value="__CHAVE__">
+          <input type="hidden" name="etapaFotoAtual___CHAVE__" value="">
+          <textarea name="etapaTexto___CHAVE__" placeholder="Descreva esta etapa" aria-label="Texto da etapa"></textarea>
+          <div class="etapa-foto">
+            <img id="previa-etapa-__CHAVE__" hidden alt="Prévia da foto da etapa">
+            <input type="file" name="etapaFoto___CHAVE__" accept="image/jpeg,image/png,image/gif,image/webp" data-previa="previa-etapa-__CHAVE__" data-limite="5242880" aria-label="Foto da etapa">
+          </div>
+        </div>
+        <button class="btn-remover" type="button" data-remover-linha title="Remover etapa" aria-label="Remover etapa">×</button>
+      </div>
+    </template>
+
+    <div class="form-footer"><a class="btn btn-outline" th:href="@{/receitas}">Cancelar</a><button type="submit" class="btn btn-primary" th:text="${edicao ? 'Salvar alterações' : 'Salvar receita'}">Salvar receita</button></div>
+  </form>
+</main>
+</body>
+</html>
