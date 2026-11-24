@@ -19,14 +19,17 @@ Aplicação web desenvolvida como trabalho acadêmico para o cadastro de receita
 - Material de aula: link de videoaula do YouTube, vídeo próprio (MP4 ou WebM, até 60 MB) e foto opcional em cada etapa do preparo.
 - Correção automática de ingredientes digitados com erro (por exemplo, `farna` vira `Farinha`), no cadastro de receitas, na despensa e na busca, com sugestões de autocompletar.
 - Sugestões para nomes digitados com erro (por exemplo, `xocolate` gera a pergunta "Você quis dizer: Chocolate?"). O algoritmo é local e não usa serviço externo: combina distância de edição de Damerau-Levenshtein, uma chave fonética para o português (`ch` e `x`, `ss`, `ç` e `z`, `h` mudo, `qu` e `k`, vogal final) e a comparação de trechos de três letras. Está em `service/CorretorIngredientes.java`.
-- Compartilhamento de receitas entre usuários pelo e-mail, com mensagem opcional. O destinatário vê o que falta na própria despensa e pode salvar uma cópia editável. O dono vê, no cartão e na página da receita, com quem ela foi compartilhada, e pode revogar o acesso.
+- Amigos: a pessoa envia um pedido de amizade pelo e-mail de outro usuário, que aceita ou recusa na página Amigos. Pedidos pendentes aparecem com um contador no menu, e a amizade pode ser desfeita a qualquer momento.
+- Compartilhamento de receitas somente entre amigos: o dono marca os amigos na página da receita e pode incluir uma mensagem opcional. O destinatário vê o que falta na própria despensa e pode salvar uma cópia editável. O dono vê, no cartão e na página da receita, com quem ela foi compartilhada, e pode revogar o acesso.
 - Adaptação de receitas: o botão "Adaptar" cria uma nova versão, com nome próprio, que já traz copiados ingredientes, etapas, fotos e vídeos. A receita original não é alterada, e a versão indica de qual receita veio.
-- Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes (com conversão de unidades), edição da quantidade e da unidade de cada item, remoção, contagem de receitas que usam cada ingrediente e lista de compras com o que falta, somado entre as receitas.
+- Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes (com conversão de unidades), edição da quantidade e da unidade de cada item, remoção e contagem de receitas que usam cada ingrediente.
+- Lista de mercado: a pessoa escolhe as receitas que pretende preparar e a página mostra apenas o que falta na despensa, somado entre elas e com a indicação das receitas que usam cada item. Ao voltar do mercado, os itens marcados como comprados são somados à despensa.
+- Conversor de medidas: página para converter entre gramas, quilos, mililitros, litros, xícaras e colheres (de sopa e de chá), com tabela de referência. Para passar de peso para volume, o conversor usa a densidade aproximada do ingrediente (farinha, açúcar, leite, óleo e outros).
 - Comparação: classificação das receitas em disponíveis, parciais ou indisponíveis, com a quantidade que falta de cada ingrediente.
 - Receita: ajuste de porções com recálculo das quantidades, marcação de ingredientes e impressão.
 - Dados de demonstração: dezesseis receitas com fotografia e uma despensa inicial, criadas na primeira execução. Receitas já existentes não são duplicadas.
 
-A comparação considera quantidade e unidade, com conversão automática entre unidades da mesma grandeza: massa (`mg`, `g` e `kg`) e volume (`cl`, `ml` e `l`). Assim, 1 `kg` na despensa atende uma receita que pede 500 `g`, e vice-versa. Unidades sem equivalência fixa (`unidade`, `dente`, `colher` e `xícara`) só são comparadas com elas mesmas. A regra está em `service/ConversorUnidades.java`.
+A comparação considera quantidade e unidade, com conversão automática entre unidades da mesma grandeza: massa (`mg`, `g` e `kg`) e volume (`cl`, `ml`, `l`, `xícara`, `colher` e `colher de chá`). Assim, 1 `kg` na despensa atende uma receita que pede 500 `g`, e 1 `xícara` equivale a 240 `ml`. Entre massa e volume a conversão só ocorre quando o ingrediente tem densidade conhecida (por exemplo, 1 `xícara` de farinha de trigo corresponde a cerca de 120 `g`); sem ela, as quantidades são comparadas apenas na mesma grandeza. As medidas caseiras seguem o padrão brasileiro (xícara de 240 ml, colher de sopa de 15 ml e colher de chá de 5 ml) e as densidades são aproximadas, pois dependem de como o ingrediente é medido. Unidades sem equivalência fixa (`unidade` e `dente`) só são comparadas com elas mesmas. A regra está em `service/ConversorUnidades.java`.
 
 ## Tecnologias
 
@@ -202,7 +205,7 @@ No Linux e no macOS:
 ./mvnw test
 ```
 
-Os testes verificam o envio de imagem, vídeo e fotos de etapas, o compartilhamento entre dois usuários, a adaptação de receitas, as sugestões para ingredientes digitados com erro, a lista de compras, a busca com correção de digitação, o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
+Os testes verificam o envio de imagem, vídeo e fotos de etapas, o compartilhamento entre dois usuários, a adaptação de receitas, as sugestões para ingredientes digitados com erro, o fluxo de amigos, a lista de mercado, o conversor de medidas, a busca com correção de digitação, o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
 
 ## Documentação
 
@@ -233,7 +236,7 @@ src/main/java/br/com/cozinhaemdia/
   controller/   rotas e preparação dos dados para as telas
   model/        entidades JPA
   repository/   interfaces de persistência
-  service/      regras de receita, despensa, disponibilidade, mídia, correção de ingredientes e compartilhamento
+  service/      regras de receita, despensa, disponibilidade, mídia, correção de ingredientes e compartilhamento e amizades
 src/main/resources/
   templates/    páginas Thymeleaf
   static/css/   estilo da interface
@@ -248,7 +251,7 @@ scripts/        script de preparação (PowerShell) e código do lançador
 
 ## Créditos das fotografias
 
-As fotografias das receitas de demonstração são arquivos de licença livre do Wikimedia Commons. Elas não ficam no repositório: a aplicação as carrega diretamente de `commons.wikimedia.org` (endereço `Special:FilePath`) e, por isso, precisa de acesso à internet para exibi-las. Sem conexão, a receita exibe o espaço neutro no lugar da foto. A tela de entrada e a de cadastro usam as fotografias de espaguete e de pão de queijo, que constam na lista.
+As fotografias das receitas de demonstração são arquivos de licença livre do Wikimedia Commons. Elas não ficam no repositório: a aplicação as carrega diretamente de `commons.wikimedia.org` (endereço `Special:FilePath`) e, por isso, precisa de acesso à internet para exibi-las. Sem conexão, a receita exibe o espaço neutro no lugar da foto.
 
 | Arquivo | Autoria | Licença |
 |---|---|---|
@@ -275,4 +278,4 @@ As páginas de cada arquivo no Wikimedia Commons trazem o texto completo da lice
 
 - O escopo não inclui geração de receitas por inteligência artificial, integração com supermercados, informações nutricionais, controle de validade, avaliações ou serviços externos.
 - A interface é um protótipo funcional e não uma versão de produção.
-- Uma versão de produção exigiria validações adicionais, ampliação dos testes, tratamento mais completo de erros, conversão entre medidas caseiras (colher e xícara) e o uso de migrações de banco (por exemplo, Flyway) no lugar de `ddl-auto=update`.
+- Uma versão de produção exigiria validações adicionais, ampliação dos testes, tratamento mais completo de erros, densidades de ingredientes mais precisas e o uso de migrações de banco (por exemplo, Flyway) no lugar de `ddl-auto=update`.

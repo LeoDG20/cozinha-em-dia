@@ -15,7 +15,7 @@
 | `GET` | `/receitas/{id}/editar` | Exibir formulário de edição |
 | `POST` | `/receitas/{id}/editar` | Salvar edição |
 | `POST` | `/receitas/{id}/excluir` | Excluir receita e os arquivos de mídia dela |
-| `POST` | `/receitas/{id}/compartilhar` | Compartilhar a receita com outro usuário, pelo e-mail |
+| `POST` | `/receitas/{id}/compartilhar` | Compartilhar a receita com amigos (parâmetro `amigo`, um ou vários identificadores, e `mensagem` opcional). Recusa quem ainda não é amigo |
 | `POST` | `/receitas/{id}/salvar-copia` | Salvar, na conta do destinatário, uma cópia da receita compartilhada |
 | `POST` | `/receitas/{id}/adaptar` | Criar uma versão adaptada (cópia completa com o nome informado) e abrir a edição dela. Vale para receitas próprias e compartilhadas |
 | `GET` | `/compartilhadas` | Listar receitas compartilhadas com o usuário |
@@ -29,5 +29,13 @@
 | `POST` | `/despensa/editar` | Alterar a quantidade e a unidade de um item |
 | `POST` | `/despensa/remover` | Remover item da despensa |
 | `GET` | `/o-que-posso-fazer` | Comparar estoque e ingredientes das receitas |
+| `GET` | `/mercado` | Lista de mercado: escolher receitas (`receitas`, `f`) e ver o que falta, somado entre elas |
+| `POST` | `/mercado/comprar` | Somar à despensa os itens marcados como comprados (`item` no formato `quantidade\|unidade\|nome`) |
+| `GET` | `/medidas` | Conversor de medidas (`valor`, `de`, `para` e `ingrediente` opcional) com tabelas de referência |
+| `GET` | `/amigos` | Listar amigos, pedidos recebidos e pedidos enviados |
+| `POST` | `/amigos` | Enviar pedido de amizade (`email`) |
+| `POST` | `/amigos/{id}/aceitar` | Aceitar um pedido recebido |
+| `POST` | `/amigos/{id}/recusar` | Recusar um pedido recebido ou cancelar um pedido enviado |
+| `POST` | `/amigos/{id}/desfazer` | Desfazer uma amizade |
 
 As rotas privadas exigem usuário autenticado pelo **Spring Security** (`SecurityConfig`); quem não está autenticado é redirecionado para `/login`. `POST /login` e `POST /logout` são tratados pelo Spring Security (campos `email` e `senha`), e todo `POST` exige o token CSRF, inserido automaticamente pelo Thymeleaf nos formulários.
