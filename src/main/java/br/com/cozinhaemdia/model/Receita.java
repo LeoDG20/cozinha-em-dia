@@ -35,6 +35,8 @@ public class Receita {
     @OneToMany(mappedBy = "receita", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
     private List<EtapaReceita> etapas = new ArrayList<>();
+    @OneToMany(mappedBy = "receita", cascade = CascadeType.REMOVE)
+    private List<Compartilhamento> compartilhamentos = new ArrayList<>();
 
     public Receita() {}
     public Long getId() { return id; }

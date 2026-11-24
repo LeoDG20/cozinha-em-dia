@@ -12,33 +12,45 @@ public class DisponibilidadeService {
     public DisponibilidadeService(ReceitaService receitaService, DespensaRepository despensaRepository) { this.receitaService = receitaService; this.despensaRepository = despensaRepository; }
 
     public List<AnaliseReceita> analisar(Long usuarioId) {
-        Map<Long, Despensa> estoque = new HashMap<>();
-        for (Despensa item : despensaRepository.findAllByUsuarioIdOrderByIngredienteNomeAsc(usuarioId)) estoque.put(item.getIngrediente().getId(), item);
+        Map<Long, Despensa> estoque = estoqueDe(usuarioId);
         List<AnaliseReceita> resultado = new ArrayList<>();
-        for (Receita receita : receitaService.listar(usuarioId)) {
-            List<ReceitaIngrediente> itens = receitaService.ingredientesDaReceita(receita.getId());
-            List<ItemFaltante> faltantes = new ArrayList<>();
-            int itensComEstoque = 0, itensOk = 0;
-            for (ReceitaIngrediente requerido : itens) {
-                Despensa disponivel = estoque.get(requerido.getIngrediente().getId());
-                double qtdDisponivel = 0;
-                if (disponivel != null) {
-                    // Converte o estoque para a unidade da receita (por exemplo, kg para g), quando houver equivalência.
-                    qtdDisponivel = ConversorUnidades.converter(disponivel.getQuantidade(), disponivel.getUnidade(), requerido.getUnidade())
-                            .map(valor -> Math.max(0, valor)).orElse(0.0);
-                    if (qtdDisponivel > 0) itensComEstoque++;
-                }
-                if (qtdDisponivel + 0.000001 >= requerido.getQuantidade()) itensOk++;
-                else faltantes.add(new ItemFaltante(requerido.getIngrediente().getNome(), Math.max(0, requerido.getQuantidade() - qtdDisponivel), requerido.getUnidade(), qtdDisponivel));
-            }
-            StatusDisponibilidade status;
-            if (faltantes.isEmpty()) status = StatusDisponibilidade.DISPONIVEL;
-            else if (itensComEstoque == 0) status = StatusDisponibilidade.INDISPONIVEL;
-            else status = StatusDisponibilidade.PARCIAL;
-            resultado.add(new AnaliseReceita(receita, status, faltantes, itensOk, itens.size(), itensComEstoque));
-        }
+        for (Receita receita : receitaService.listar(usuarioId)) resultado.add(analisar(receita, estoque));
         resultado.sort(Comparator.comparing((AnaliseReceita a) -> a.getStatus().ordinal()).thenComparing(a -> a.getReceita().getNome()));
         return resultado;
+    }
+
+    /** Compara uma única receita (própria ou compartilhada) com a despensa do usuário. */
+    public AnaliseReceita analisarReceita(Receita receita, Long usuarioId) {
+        return analisar(receita, estoqueDe(usuarioId));
+    }
+
+    private Map<Long, Despensa> estoqueDe(Long usuarioId) {
+        Map<Long, Despensa> estoque = new HashMap<>();
+        for (Despensa item : despensaRepository.findAllByUsuarioIdOrderByIngredienteNomeAsc(usuarioId)) estoque.put(item.getIngrediente().getId(), item);
+        return estoque;
+    }
+
+    private AnaliseReceita analisar(Receita receita, Map<Long, Despensa> estoque) {
+        List<ReceitaIngrediente> itens = receitaService.ingredientesDaReceita(receita.getId());
+        List<ItemFaltante> faltantes = new ArrayList<>();
+        int itensComEstoque = 0, itensOk = 0;
+        for (ReceitaIngrediente requerido : itens) {
+            Despensa disponivel = estoque.get(requerido.getIngrediente().getId());
+            double qtdDisponivel = 0;
+            if (disponivel != null) {
+                // Converte o estoque para a unidade da receita (por exemplo, kg para g), quando houver equivalência.
+                qtdDisponivel = ConversorUnidades.converter(disponivel.getQuantidade(), disponivel.getUnidade(), requerido.getUnidade())
+                        .map(valor -> Math.max(0, valor)).orElse(0.0);
+                if (qtdDisponivel > 0) itensComEstoque++;
+            }
+            if (qtdDisponivel + 0.000001 >= requerido.getQuantidade()) itensOk++;
+            else faltantes.add(new ItemFaltante(requerido.getIngrediente().getNome(), Math.max(0, requerido.getQuantidade() - qtdDisponivel), requerido.getUnidade(), qtdDisponivel));
+        }
+        StatusDisponibilidade status;
+        if (faltantes.isEmpty()) status = StatusDisponibilidade.DISPONIVEL;
+        else if (itensComEstoque == 0) status = StatusDisponibilidade.INDISPONIVEL;
+        else status = StatusDisponibilidade.PARCIAL;
+        return new AnaliseReceita(receita, status, faltantes, itensOk, itens.size(), itensComEstoque);
     }
     public enum StatusDisponibilidade {
         DISPONIVEL("Pode preparar", "available"), PARCIAL("Faltam ingredientes", "partial"), INDISPONIVEL("Não disponível", "unavailable");
