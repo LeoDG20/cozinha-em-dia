@@ -38,6 +38,7 @@ class CompartilhamentoServiceTest {
     private ReceitaIngredienteRepository receitaIngredientes;
     private UsuarioRepository usuarios;
     private ArmazenamentoArquivos arquivos;
+    private AmizadeService amizades;
     private CompartilhamentoService service;
 
     private Usuario ana;
@@ -51,7 +52,8 @@ class CompartilhamentoServiceTest {
         receitaIngredientes = mock(ReceitaIngredienteRepository.class);
         usuarios = mock(UsuarioRepository.class);
         arquivos = mock(ArmazenamentoArquivos.class);
-        service = new CompartilhamentoService(compartilhamentos, receitas, usuarios, new CopiaReceitaService(receitas, receitaIngredientes, arquivos));
+        amizades = mock(AmizadeService.class);
+        service = new CompartilhamentoService(compartilhamentos, receitas, usuarios, new CopiaReceitaService(receitas, receitaIngredientes, arquivos), amizades);
 
         ana = usuario(1L, "Ana", "ana@teste.com");
         bruno = usuario(2L, "Bruno", "bruno@teste.com");
@@ -63,6 +65,7 @@ class CompartilhamentoServiceTest {
 
         when(usuarios.findByEmailIgnoreCase("bruno@teste.com")).thenReturn(Optional.of(bruno));
         when(usuarios.findByEmailIgnoreCase("ana@teste.com")).thenReturn(Optional.of(ana));
+        when(amizades.saoAmigos(1L, 2L)).thenReturn(true);
         when(compartilhamentos.save(any(Compartilhamento.class))).thenAnswer(c -> c.getArgument(0));
         when(receitas.save(any(Receita.class))).thenAnswer(c -> c.getArgument(0));
     }
@@ -104,6 +107,16 @@ class CompartilhamentoServiceTest {
         assertTrue(desconhecido.getMessage().contains("Não há usuário"));
         IllegalArgumentException proprio = assertThrows(IllegalArgumentException.class, () -> service.compartilhar(bolo, ana, "ana@teste.com", null));
         assertTrue(proprio.getMessage().contains("você mesmo"));
+        verify(compartilhamentos, never()).save(any());
+    }
+
+    @Test
+    void recusaCompartilharComQuemNaoEAmigo() {
+        when(amizades.saoAmigos(1L, 2L)).thenReturn(false);
+
+        IllegalArgumentException erro = assertThrows(IllegalArgumentException.class, () -> service.compartilhar(bolo, ana, "bruno@teste.com", null));
+
+        assertTrue(erro.getMessage().contains("ainda não é seu amigo"));
         verify(compartilhamentos, never()).save(any());
     }
 

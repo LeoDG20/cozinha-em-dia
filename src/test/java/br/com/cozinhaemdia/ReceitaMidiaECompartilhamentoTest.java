@@ -64,6 +64,7 @@ class ReceitaMidiaECompartilhamentoTest {
     @Autowired ArmazenamentoArquivos arquivos;
     @Autowired ReceitaService receitaService;
     @Autowired PlatformTransactionManager transacoes;
+    @Autowired br.com.cozinhaemdia.repository.AmizadeRepository amizades;
 
     @DynamicPropertySource
     static void propriedades(DynamicPropertyRegistry registro) throws Exception {
@@ -75,6 +76,11 @@ class ReceitaMidiaECompartilhamentoTest {
     void criarUsuarios() {
         for (String email : List.of(AMIGO, ESTRANHO))
             if (usuarios.findByEmailIgnoreCase(email).isEmpty()) usuarios.save(new Usuario(email.split("\\.")[0], email, codificador.encode("senha-forte-123")));
+        if (!amizades.saoAmigos(usuario(DONO).getId(), usuario(AMIGO).getId())) {
+            br.com.cozinhaemdia.model.Amizade a = new br.com.cozinhaemdia.model.Amizade(usuario(DONO), usuario(AMIGO));
+            a.setAceita(true);
+            amizades.save(a);
+        }
     }
 
     private RequestPostProcessor como(String email) { return user(detalhes.loadUserByUsername(email)); }

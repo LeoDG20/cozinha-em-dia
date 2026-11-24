@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head('Amigos')}"></th:block></head>
+<body>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
+<main class="page estreita">
+  <div class="page-head">
+    <div>
+      <h1>Amigos</h1>
+      <p class="muted">Receitas só são compartilhadas entre amigos. Envie um pedido pelo e-mail da pessoa; a amizade começa quando ela aceitar.</p>
+    </div>
+  </div>
+  <th:block th:replace="~{fragments/abas :: amigos('amigos')}"></th:block>
+
+  <div class="alerta sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
+  <div class="alerta erro" th:if="${erro}" th:text="${erro}"></div>
+
+  <section class="painel">
+    <form class="convite" th:action="@{/amigos}" method="post">
+      <label>E-mail do amigo<input type="email" name="email" placeholder="nome@exemplo.com" required autocomplete="off"></label>
+      <button class="btn btn-primary" type="submit">Enviar pedido</button>
+    </form>
+  </section>
+
+  <section class="bloco-amigos" th:if="${!#lists.isEmpty(recebidos)}">
+    <h2 class="secao">Pedidos recebidos</h2>
+    <ul class="lista-pessoas">
+      <li th:each="p : ${recebidos}">
+        <span class="avatar" aria-hidden="true" th:text="${#strings.substring(p.solicitante.nome,0,1).toUpperCase()}">A</span>
+        <span class="pessoa-dados"><b th:text="${p.solicitante.nome}">Nome</b><small th:text="${p.solicitante.email}">email</small></span>
+        <span class="pessoa-acoes">
+          <form th:action="@{/amigos/{id}/aceitar(id=${p.id})}" method="post"><button class="btn btn-primary btn-sm" type="submit">Aceitar</button></form>
+          <form th:action="@{/amigos/{id}/recusar(id=${p.id})}" method="post"><button class="btn btn-secondary btn-sm" type="submit">Recusar</button></form>
+        </span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="bloco-amigos">
+    <h2 class="secao">Seus amigos <span class="contagem" th:text="${amigos.size()}">0</span></h2>
+    <ul class="lista-pessoas" th:if="${!#lists.isEmpty(amigos)}">
+      <li th:each="a : ${amigos}">
+        <span class="avatar" aria-hidden="true" th:text="${#strings.substring(a.usuario.nome,0,1).toUpperCase()}">A</span>
+        <span class="pessoa-dados"><b th:text="${a.usuario.nome}">Nome</b><small th:text="${a.usuario.email}">email</small></span>
+        <span class="pessoa-acoes">
+          <form th:action="@{/amigos/{id}/desfazer(id=${a.amizadeId})}" method="post" data-confirmar="Desfazer a amizade? Receitas já compartilhadas continuam com quem as recebeu."><button class="link-botao perigo" type="submit">Desfazer amizade</button></form>
+        </span>
+      </li>
+    </ul>
+    <p class="muted" th:if="${#lists.isEmpty(amigos)}">Você ainda não tem amigos adicionados. Envie um pedido acima para começar a compartilhar receitas.</p>
+  </section>
+
+  <section class="bloco-amigos" th:if="${!#lists.isEmpty(enviados)}">
+    <h2 class="secao">Aguardando resposta</h2>
+    <ul class="lista-pessoas">
+      <li th:each="p : ${enviados}">
+        <span class="avatar" aria-hidden="true" th:text="${#strings.substring(p.destinatario.nome,0,1).toUpperCase()}">A</span>
+        <span class="pessoa-dados"><b th:text="${p.destinatario.nome}">Nome</b><small th:text="${p.destinatario.email}">email</small></span>
+        <span class="pessoa-acoes">
+          <form th:action="@{/amigos/{id}/recusar(id=${p.id})}" method="post"><button class="link-botao" type="submit">Cancelar pedido</button></form>
+        </span>
+      </li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

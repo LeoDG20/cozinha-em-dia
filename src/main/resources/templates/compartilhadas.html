@@ -6,10 +6,11 @@
 <main class="page estreita">
   <div class="page-head">
     <div>
-      <h1>Compartilhadas comigo</h1>
-      <p class="muted">Receitas que outras pessoas enviaram. Salve uma cópia para editar, ou use “Adaptar” na página da receita para criar sua própria versão.</p>
+      <h1>Amigos</h1>
+      <p class="muted">Receitas que seus amigos enviaram. Salve uma cópia para editar, ou use “Adaptar” na página da receita para criar sua própria versão.</p>
     </div>
   </div>
+  <th:block th:replace="~{fragments/abas :: amigos('recebidas')}"></th:block>
   <div class="alerta sucesso" th:if="${sucesso}" th:text="${sucesso}"></div>
   <div class="alerta erro" th:if="${erro}" th:text="${erro}"></div>
 
@@ -31,8 +32,8 @@
 
   <div class="vazio" th:if="${#lists.isEmpty(recebidas)}">
     <h2>Nenhuma receita compartilhada</h2>
-    <p>Quando alguém compartilhar uma receita com o seu e-mail, ela aparece aqui. Para enviar uma das suas, abra a receita e use “Compartilhar”.</p>
-    <a class="btn btn-secondary" th:href="@{/receitas}">Ir para minhas receitas</a>
+    <p>Quando um amigo compartilhar uma receita com você, ela aparece aqui. Para enviar uma das suas, abra a receita e use “Compartilhar”.</p>
+    <a class="btn btn-secondary" th:href="@{/amigos}">Ver meus amigos</a>
   </div>
 </main>
 </body>

@@ -7,6 +7,7 @@ import br.com.cozinhaemdia.model.ReceitaIngrediente;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.repository.UsuarioRepository;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
+import br.com.cozinhaemdia.service.AmizadeService;
 import br.com.cozinhaemdia.service.CompartilhamentoService;
 import br.com.cozinhaemdia.service.CopiaReceitaService;
 import br.com.cozinhaemdia.service.CorretorIngredientes;
@@ -54,10 +55,12 @@ public class ReceitaController {
     private final CorretorIngredientes corretor;
     private final UsuarioRepository usuarios;
     private final CopiaReceitaService copias;
+    private final AmizadeService amizades;
 
     public ReceitaController(ReceitaService receitaService, RegistroReceitaService registro, DisponibilidadeService disponibilidade,
                              CompartilhamentoService compartilhamentos, CorretorIngredientes corretor, UsuarioRepository usuarios,
-                             CopiaReceitaService copias) {
+                             CopiaReceitaService copias, AmizadeService amizades) {
+        this.amizades = amizades;
         this.receitaService = receitaService; this.registro = registro; this.disponibilidade = disponibilidade;
         this.compartilhamentos = compartilhamentos; this.corretor = corretor; this.usuarios = usuarios; this.copias = copias;
     }
@@ -121,7 +124,13 @@ public class ReceitaController {
         model.addAttribute("passos", passos(receita));
         model.addAttribute("dono", dono);
         if (dono) {
-            model.addAttribute("destinatarios", compartilhamentos.enviadasDa(id));
+            List<Compartilhamento> enviadas = compartilhamentos.enviadasDa(id);
+            model.addAttribute("destinatarios", enviadas);
+            java.util.Set<Long> jaTem = new java.util.HashSet<>();
+            for (Compartilhamento c : enviadas) jaTem.add(c.getDestino().getId());
+            List<AmizadeService.Amigo> todosAmigos = amizades.amigos(auth.getId());
+            model.addAttribute("totalAmigos", todosAmigos.size());
+            model.addAttribute("amigosParaCompartilhar", todosAmigos.stream().filter(a -> !jaTem.contains(a.usuario().getId())).toList());
         } else {
             Optional<Compartilhamento> recebido = compartilhamentos.recebidas(auth.getId()).stream().filter(c -> c.getReceita().getId().equals(id)).findFirst();
             model.addAttribute("recebido", recebido.orElse(null));
@@ -176,15 +185,21 @@ public class ReceitaController {
 
     @PostMapping("/receitas/{id}/compartilhar")
     public String compartilhar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth,
-                               @RequestParam String email, @RequestParam(required = false) String mensagem, RedirectAttributes flash) {
+                               @RequestParam(required = false) String email, @RequestParam(required = false) List<Long> amigo,
+                               @RequestParam(required = false) String mensagem, RedirectAttributes flash) {
         Receita receita = receitaService.buscar(id, auth.getId()).orElse(null);
         if (receita == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
-        try {
-            Compartilhamento c = compartilhamentos.compartilhar(receita, usuario(auth), email, mensagem);
-            flash.addFlashAttribute("sucesso", "Receita compartilhada com " + c.getDestino().getNome() + ".");
-        } catch (IllegalArgumentException ex) {
-            flash.addFlashAttribute("erro", ex.getMessage());
+        List<String> emails = new ArrayList<>();
+        if (amigo != null) for (Long amigoId : amigo) usuarios.findById(amigoId).ifPresent(u -> emails.add(u.getEmail()));
+        if (email != null && !email.isBlank()) emails.add(email);
+        if (emails.isEmpty()) { flash.addFlashAttribute("erro", "Escolha ao menos um amigo para compartilhar."); return "redirect:/receitas/" + id; }
+        List<String> nomes = new ArrayList<>(), erros = new ArrayList<>();
+        for (String destino : emails) {
+            try { nomes.add(compartilhamentos.compartilhar(receita, usuario(auth), destino, mensagem).getDestino().getNome()); }
+            catch (IllegalArgumentException ex) { erros.add(ex.getMessage()); }
         }
+        if (!nomes.isEmpty()) flash.addFlashAttribute("sucesso", "Receita compartilhada com " + String.join(", ", nomes) + ".");
+        if (!erros.isEmpty()) flash.addFlashAttribute("erro", String.join(" ", erros));
         return "redirect:/receitas/" + id;
     }
 

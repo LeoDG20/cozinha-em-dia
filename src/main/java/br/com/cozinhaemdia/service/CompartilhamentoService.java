@@ -14,21 +14,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Compartilhamento de receitas entre usuários: envio por e-mail, consulta pelo destinatário e cópia para a conta dele. */
+/** Compartilhamento de receitas entre amigos: envio, consulta pelo destinatário e cópia para a conta dele. */
 @Service
 public class CompartilhamentoService {
     private final CompartilhamentoRepository compartilhamentos;
     private final ReceitaRepository receitas;
     private final UsuarioRepository usuarios;
     private final CopiaReceitaService copias;
+    private final AmizadeService amizades;
 
     public CompartilhamentoService(CompartilhamentoRepository compartilhamentos, ReceitaRepository receitas,
-                                   UsuarioRepository usuarios, CopiaReceitaService copias) {
+                                   UsuarioRepository usuarios, CopiaReceitaService copias, AmizadeService amizades) {
         this.compartilhamentos = compartilhamentos; this.receitas = receitas;
-        this.usuarios = usuarios; this.copias = copias;
+        this.usuarios = usuarios; this.copias = copias; this.amizades = amizades;
     }
 
-    /** Compartilha a receita com o usuário que tem o e-mail informado. Só o dono pode compartilhar. */
+    /** Compartilha a receita com um amigo (identificado pelo e-mail). Só o dono pode compartilhar e só com amigos. */
     @Transactional
     public Compartilhamento compartilhar(Receita receita, Usuario origem, String email, String mensagem) {
         if (!receita.getUsuario().getId().equals(origem.getId())) throw new IllegalArgumentException("Você só pode compartilhar as suas próprias receitas.");
@@ -36,6 +37,8 @@ public class CompartilhamentoService {
         Usuario destino = usuarios.findByEmailIgnoreCase(email.trim())
                 .orElseThrow(() -> new IllegalArgumentException("Não há usuário cadastrado com esse e-mail. Peça para a pessoa criar uma conta primeiro."));
         if (destino.getId().equals(origem.getId())) throw new IllegalArgumentException("Você não pode compartilhar uma receita com você mesmo.");
+        if (!amizades.saoAmigos(origem.getId(), destino.getId()))
+            throw new IllegalArgumentException(destino.getNome() + " ainda não é seu amigo. Envie um pedido na página Amigos para poder compartilhar receitas.");
         if (compartilhamentos.existsByReceitaIdAndDestinoId(receita.getId(), destino.getId()))
             throw new IllegalArgumentException("Esta receita já foi compartilhada com " + destino.getNome() + ".");
         String nota = mensagem == null ? "" : mensagem.trim();

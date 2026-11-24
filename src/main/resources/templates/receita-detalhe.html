@@ -105,12 +105,19 @@
 
   <section class="painel compartilhar-painel" id="compartilhar" th:if="${dono}" style="margin-top:40px">
     <div class="painel-cab"><h2>Compartilhar</h2></div>
-    <p class="muted" style="margin-bottom:14px">Informe o e-mail de quem já tem conta. A pessoa poderá ver a receita e salvar uma cópia própria.</p>
-    <form class="compartilhar" th:action="@{/receitas/{id}/compartilhar(id=${receita.id})}" method="post">
-      <input type="email" name="email" placeholder="email@exemplo.com" required aria-label="E-mail do destinatário">
+    <p class="muted" style="margin-bottom:14px">Escolha entre os seus amigos. Eles poderão ver a receita e salvar uma cópia própria.</p>
+    <form class="compartilhar" th:action="@{/receitas/{id}/compartilhar(id=${receita.id})}" method="post" th:if="${!#lists.isEmpty(amigosParaCompartilhar)}">
+      <div class="escolha-amigos">
+        <label class="opcao" th:each="a : ${amigosParaCompartilhar}">
+          <input type="checkbox" name="amigo" th:value="${a.usuario.id}">
+          <span><span th:text="${a.usuario.nome}">Nome</span><small class="muted" th:text="${a.usuario.email}">email</small></span>
+        </label>
+      </div>
       <textarea name="mensagem" maxlength="200" placeholder="Mensagem opcional (até 200 caracteres)" aria-label="Mensagem"></textarea>
       <button class="btn btn-primary" type="submit" style="justify-self:start">Compartilhar receita</button>
     </form>
+    <p class="muted" th:if="${totalAmigos == 0}">Você ainda não tem amigos adicionados. <a th:href="@{/amigos}">Adicionar amigos</a></p>
+    <p class="muted" th:if="${totalAmigos > 0 && #lists.isEmpty(amigosParaCompartilhar)}">Esta receita já foi compartilhada com todos os seus amigos. <a th:href="@{/amigos}">Adicionar mais amigos</a></p>
     <h3 style="margin-top:24px; font-size:15px" th:if="${!#lists.isEmpty(destinatarios)}">Gerenciar acesso</h3>
     <ul class="destinatarios" th:if="${!#lists.isEmpty(destinatarios)}">
       <li th:each="c : ${destinatarios}">
