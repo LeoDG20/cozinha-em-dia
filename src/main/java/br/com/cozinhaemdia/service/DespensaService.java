@@ -22,7 +22,7 @@ public class DespensaService {
         if (existente == null) despensa.save(new Despensa(usuario, ing, quantidade, ConversorUnidades.normalizar(unidade)));
         else {
             // A quantidade informada é convertida para a unidade já cadastrada (por exemplo, 1 kg somado a 200 g).
-            double somar = ConversorUnidades.converter(quantidade, unidade, existente.getUnidade()).orElseThrow(() ->
+            double somar = ConversorUnidades.converter(quantidade, unidade, existente.getUnidade(), ing.getNome()).orElseThrow(() ->
                     new IllegalArgumentException("Esse ingrediente já está cadastrado em '" + existente.getUnidade() + "', que não é compatível com '" + unidade.trim() + "'. Use uma unidade equivalente ou ajuste o item pela edição."));
             existente.setQuantidade(existente.getQuantidade() + somar);
             despensa.save(existente);

@@ -125,7 +125,7 @@ class DespensaServiceTest {
         when(despensa.findByUsuarioIdAndIngredienteId(USUARIO_ID, INGREDIENTE_ID)).thenReturn(Optional.of(existente));
 
         IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,
-                () -> service.adicionar(usuario, "Farinha", 1.0, "ml"));
+                () -> service.adicionar(usuario, "Farinha", 1.0, "unidade"));
 
         assertTrue(erro.getMessage().contains("'g'"));
         assertEquals(200.0, existente.getQuantidade(), 0.0001);

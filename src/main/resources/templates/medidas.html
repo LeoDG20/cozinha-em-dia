@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head('Medidas')}"></th:block></head>
+<body>
+<th:block th:replace="~{fragments/header :: header}"></th:block>
+<main class="page estreita">
+  <div class="page-head">
+    <div>
+      <h1>Conversor de medidas</h1>
+      <p class="muted">Passe xícaras e colheres para gramas e mililitros, e o contrário. Para trocar peso por volume, informe o ingrediente.</p>
+    </div>
+  </div>
+
+  <section class="painel">
+    <form class="conversor" th:action="@{/medidas}" method="get">
+      <label>Quantidade<input type="text" name="valor" inputmode="decimal" placeholder="2" th:value="${valor}" required autocomplete="off"></label>
+      <label>De<select name="de"><option th:each="u : ${unidades}" th:value="${u}" th:text="${u}" th:selected="${u == de}">xícara</option></select></label>
+      <label>Para<select name="para"><option th:each="u : ${unidades}" th:value="${u}" th:text="${u}" th:selected="${u == para}">g</option></select></label>
+      <label class="campo-ingrediente">Ingrediente <small>necessário para peso e volume</small><input type="text" name="ingrediente" list="lista-ingredientes" th:value="${ingrediente}" placeholder="Ex.: farinha de trigo" autocomplete="off"></label>
+      <button class="btn btn-primary" type="submit">Converter</button>
+    </form>
+    <datalist id="lista-ingredientes"><option th:each="n : ${sugestoes}" th:value="${n}"></option></datalist>
+
+    <div class="resultado-conversao" th:if="${resultado != null && resultado.ok}">
+      <strong th:text="${resultado.texto}">2 xícara de Farinha de trigo = 240 g</strong>
+      <small th:if="${resultado.aviso != null}" th:text="${resultado.aviso}">Valor aproximado</small>
+    </div>
+    <div class="alerta erro" th:if="${resultado != null && !resultado.ok}" th:text="${resultado.aviso}" style="margin:16px 0 0"></div>
+  </section>
+
+  <div class="duas-tabelas">
+    <section>
+      <h2 class="secao">Medidas caseiras</h2>
+      <div class="tabela-wrap">
+        <table class="tabela">
+          <thead><tr><th>Medida</th><th>Equivale a</th></tr></thead>
+          <tbody>
+            <tr><td>1 xícara</td><td>240 ml</td></tr>
+            <tr><td>1 colher (de sopa)</td><td>15 ml</td></tr>
+            <tr><td>1 colher de chá</td><td>5 ml</td></tr>
+            <tr><td>1 litro</td><td>1000 ml</td></tr>
+            <tr><td>1 quilo</td><td>1000 g</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2 class="secao">Ingredientes, em gramas</h2>
+      <div class="tabela-wrap">
+        <table class="tabela">
+          <thead><tr><th>Ingrediente</th><th>1 xícara</th><th>1 colher</th></tr></thead>
+          <tbody>
+            <tr th:each="e : ${referencia}"><td th:text="${e.ingrediente}">Farinha</td><td th:text="${e.xicara}">120 g</td><td th:text="${e.colher}">7,5 g</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <p class="rodape-nota">Valores aproximados. A mesma conversão é usada para comparar suas receitas com a despensa (por exemplo, 2 xícaras de farinha contra 500 g em casa).</p>
+</main>
+</body>
+</html>

@@ -39,7 +39,7 @@ public class DisponibilidadeService {
             double qtdDisponivel = 0;
             if (disponivel != null) {
                 // Converte o estoque para a unidade da receita (por exemplo, kg para g), quando houver equivalência.
-                qtdDisponivel = ConversorUnidades.converter(disponivel.getQuantidade(), disponivel.getUnidade(), requerido.getUnidade())
+                qtdDisponivel = ConversorUnidades.converter(disponivel.getQuantidade(), disponivel.getUnidade(), requerido.getUnidade(), requerido.getIngrediente().getNome())
                         .map(valor -> Math.max(0, valor)).orElse(0.0);
                 if (qtdDisponivel > 0) itensComEstoque++;
             }

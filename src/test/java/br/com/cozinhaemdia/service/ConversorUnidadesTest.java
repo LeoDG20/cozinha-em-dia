@@ -27,7 +27,7 @@ class ConversorUnidadesTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"g, ml", "kg, l", "unidade, g", "dente, unidade", "colher, ml", "xícara, ml"})
+    @CsvSource({"g, ml", "kg, l", "unidade, g", "dente, unidade", "unidade, ml", "xícara, g", "colher, kg"})
     void naoConverteEntreGrandezasDiferentes(String origem, String destino) {
         assertTrue(ConversorUnidades.converter(1, origem, destino).isEmpty());
         assertFalse(ConversorUnidades.saoCompativeis(origem, destino));
@@ -58,5 +58,60 @@ class ConversorUnidadesTest {
     void unidadeDesconhecidaSoEhCompativelComEla() {
         assertTrue(ConversorUnidades.saoCompativeis("pitada", "pitada"));
         assertFalse(ConversorUnidades.saoCompativeis("pitada", "g"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "1, xícara, ml, 240",
+            "2, xícara, ml, 480",
+            "1, colher, ml, 15",
+            "1, colher de chá, ml, 5",
+            "3, colher de chá, colher, 1",
+            "1, l, xícara, 4.1666667",
+            "500, ml, xícara, 2.0833333"
+    })
+    void converteMedidasCaseirasParaVolume(double valor, String origem, String destino, double esperado) {
+        assertEquals(esperado, ConversorUnidades.converter(valor, origem, destino).orElseThrow(), 0.0001);
+    }
+
+    @Test
+    void reconheceVariacoesDeEscritaDasMedidasCaseiras() {
+        assertEquals("colher", ConversorUnidades.normalizar("Colher de sopa"));
+        assertEquals("colher", ConversorUnidades.normalizar("colheres de sopa"));
+        assertEquals("colher de chá", ConversorUnidades.normalizar("colher de cha"));
+        assertEquals("colher de chá", ConversorUnidades.normalizar("  Colheres de chá "));
+        assertEquals("xícara", ConversorUnidades.normalizar("xicaras"));
+    }
+
+    @Test
+    void convertePesoEmVolumePelaDensidadeDoIngrediente() {
+        assertEquals(240, ConversorUnidades.converter(2, "xícara", "g", "Farinha de trigo").orElseThrow(), 0.0001);
+        assertEquals(2, ConversorUnidades.converter(240, "g", "xícara", "farinha de trigo").orElseThrow(), 0.0001);
+        assertEquals(0.18, ConversorUnidades.converter(1, "xícara", "kg", "Açúcar").orElseThrow(), 0.0001);
+        assertEquals(240, ConversorUnidades.converter(240, "ml", "g", "Água").orElseThrow(), 0.0001);
+        assertEquals(7.5, ConversorUnidades.converter(1, "colher", "g", "Farinha").orElseThrow(), 0.0001);
+    }
+
+    @Test
+    void semDensidadeConhecidaNaoConvertePesoEmVolume() {
+        assertTrue(ConversorUnidades.converter(1, "xícara", "g", "Ingrediente desconhecido").isEmpty());
+        assertTrue(ConversorUnidades.converter(1, "xícara", "g", "").isEmpty());
+        assertTrue(ConversorUnidades.converter(1, "xícara", "g", null).isEmpty());
+        assertTrue(ConversorUnidades.converter(1, "unidade", "g", "Farinha").isEmpty());
+    }
+
+    @Test
+    void conversaoDentroDaMesmaGrandezaIgnoraOIngrediente() {
+        assertEquals(1000, ConversorUnidades.converter(1, "kg", "g", "Ingrediente desconhecido").orElseThrow(), 0.0001);
+    }
+
+    @Test
+    void densidadeUsaPalavraInteiraEIgnoraAcentos() {
+        assertTrue(ConversorUnidades.temDensidade("Óleo"));
+        assertTrue(ConversorUnidades.temDensidade("Açúcar mascavo"));
+        assertTrue(ConversorUnidades.temDensidade("Sal grosso"));
+        assertFalse(ConversorUnidades.temDensidade("Salsa"));
+        assertFalse(ConversorUnidades.temDensidade("Melancia"));
+        assertEquals(0.72, ConversorUnidades.densidade("Açúcar mascavo").orElseThrow(), 0.0001);
     }
 }
