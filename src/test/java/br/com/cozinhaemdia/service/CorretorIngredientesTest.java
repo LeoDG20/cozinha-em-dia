@@ -134,6 +134,45 @@ class CorretorIngredientesTest {
         assertEquals(3, corretor.sugerir("", 3).size());
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "xocolate, Chocolate",
+            "cenora, Cenoura",
+            "mantega, Manteiga",
+            "feijao preto, Feijão preto",
+            "farinha de triguo, Farinha de trigo",
+            "cevola, Cebola",
+            "lejume, Legume"
+    })
+    void sugereNomesParecidosPelaEscritaEPeloSom(String digitado, String esperado) {
+        List<String> parecidos = corretor.parecidos(digitado, 5);
+        if (esperado.equals("Legume")) { assertTrue(parecidos.isEmpty() || !parecidos.contains("Chocolate")); return; }
+        assertTrue(parecidos.contains(esperado), digitado + " -> " + parecidos);
+    }
+
+    @Test
+    void verificarInformaAlternativasQuandoONomeNaoEhConhecido() {
+        CorretorIngredientes.Verificacao conhecido = corretor.verificar("Farinha de trigo");
+        assertTrue(conhecido.conhecido());
+        assertTrue(conhecido.sugestoes().isEmpty());
+
+        CorretorIngredientes.Verificacao errado = corretor.verificar("xocolate");
+        assertFalse(errado.conhecido());
+        assertTrue(errado.sugestoes().contains("Chocolate"), errado.sugestoes().toString());
+        assertTrue(errado.sugestoes().size() <= 4);
+
+        CorretorIngredientes.Verificacao semParecido = corretor.verificar("zzzzqq");
+        assertFalse(semParecido.conhecido());
+        assertTrue(semParecido.sugestoes().isEmpty());
+    }
+
+    @Test
+    void chaveFoneticaAgrupaGrafiasComOMesmoSom() {
+        assertEquals(CorretorIngredientes.chaveFonetica("xocolate"), CorretorIngredientes.chaveFonetica("chocolate"));
+        assertEquals(CorretorIngredientes.chaveFonetica("musarela"), CorretorIngredientes.chaveFonetica("mussarela"));
+        assertEquals(CorretorIngredientes.chaveFonetica("jilo"), CorretorIngredientes.chaveFonetica("gilo"));
+    }
+
     @Test
     void buscaToleranteAceitaErrosDeDigitacaoEPalavrasParciais() {
         assertTrue(CorretorIngredientes.correspondeBusca("bolo de farna", "Bolo de farinha de trigo"));

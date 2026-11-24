@@ -32,9 +32,14 @@ public class CorretorIngredientes {
     /** Resultado da correção de um nome. {@code alterado} é verdadeiro só quando houve correção de erro de digitação. */
     public record Correcao(String original, String corrigido, boolean alterado) {}
 
+    /** Situação de um nome digitado: se já é conhecido, a correção automática provável e outras sugestões ordenadas por semelhança. */
+    public record Verificacao(String original, boolean conhecido, String corrigido, boolean alterado, List<String> sugestoes) {}
+
     /** Texto de ingredientes (uma linha por item) após a correção, com os avisos para o usuário. */
     public record TextoCorrigido(String texto, List<String> avisos) {}
 
+    /** Nota mínima (de 0 a 1) para um nome ser oferecido como "parecido". */
+    private static final double LIMIAR_SEMELHANCA = 0.62;
     private static final Set<String> LIGACOES = Set.of("de", "do", "da", "dos", "das", "e", "com", "em", "ao", "para", "sem", "a", "o");
 
     private final IngredienteRepository ingredientes;
@@ -100,22 +105,132 @@ public class CorretorIngredientes {
         return nomes;
     }
 
-    /** Sugestões para o texto digitado: começam com ele, depois contêm, depois são parecidos. */
+    /** Sugestões para o texto digitado: começam com ele, depois contêm, depois são parecidos (pelo som e pela escrita). */
     public List<String> sugerir(String termo, int maximo) {
         String t = normalizar(termo == null ? "" : termo);
         List<String> nomes = nomesConhecidos();
         if (t.isEmpty()) return nomes.subList(0, Math.min(maximo, nomes.size()));
-        List<String> inicio = new ArrayList<>(), contem = new ArrayList<>(), parecidos = new ArrayList<>();
+        List<String> inicio = new ArrayList<>(), contem = new ArrayList<>();
         for (String nome : nomes) {
             String n = normalizar(nome);
             if (n.startsWith(t)) inicio.add(nome);
             else if (n.contains(t)) contem.add(nome);
-            else if (correspondeBusca(t, n)) parecidos.add(nome);
         }
         List<String> resultado = new ArrayList<>(inicio);
         resultado.addAll(contem);
-        resultado.addAll(parecidos);
+        for (String nome : parecidos(termo, nomes, maximo)) if (!resultado.contains(nome)) resultado.add(nome);
         return resultado.subList(0, Math.min(maximo, resultado.size()));
+    }
+
+    /** Nomes que se parecem com o termo, do mais para o menos semelhante, mesmo quando o início da palavra está errado. */
+    public List<String> parecidos(String termo, int maximo) {
+        return parecidos(termo == null ? "" : termo, nomesConhecidos(), maximo);
+    }
+
+    /**
+     * Analisa um nome digitado. Se for desconhecido, devolve a correção automática (quando há uma única opção clara)
+     * e uma lista de alternativas para que a pessoa escolha ("Você quis dizer...?").
+     */
+    public Verificacao verificar(String digitado) {
+        String original = digitado == null ? "" : digitado.trim().replaceAll("\\s+", " ");
+        if (original.isEmpty()) return new Verificacao(original, true, original, false, List.of());
+        Correcao c = corrigir(original);
+        if (mapaConhecidos().containsKey(normalizar(original))) return new Verificacao(original, true, c.corrigido(), false, List.of());
+        List<String> alternativas = new ArrayList<>();
+        if (c.alterado()) alternativas.add(c.corrigido());
+        for (String nome : parecidos(original, nomesConhecidos(), 5))
+            if (!alternativas.contains(nome)) alternativas.add(nome);
+        return new Verificacao(original, false, c.corrigido(), c.alterado(), alternativas.subList(0, Math.min(4, alternativas.size())));
+    }
+
+    /** Entre os textos candidatos, os que mais se parecem com o termo digitado (por escrita e som), do mais ao menos parecido. */
+    public static List<String> maisParecidos(String termo, List<String> candidatos, int maximo) {
+        return parecidos(termo == null ? "" : termo, candidatos, maximo);
+    }
+
+    private static List<String> parecidos(String termo, List<String> nomes, int maximo) {
+        if (normalizar(termo).isEmpty()) return List.of();
+        record Pontuado(String nome, double nota) {}
+        List<Pontuado> lista = new ArrayList<>();
+        for (String nome : nomes) {
+            double nota = semelhanca(termo, nome);
+            if (nota >= LIMIAR_SEMELHANCA) lista.add(new Pontuado(nome, nota));
+        }
+        lista.sort((a, b) -> Double.compare(b.nota(), a.nota()) != 0 ? Double.compare(b.nota(), a.nota()) : Integer.compare(a.nome().length(), b.nome().length()));
+        List<String> saida = new ArrayList<>();
+        for (Pontuado p : lista) { if (saida.size() >= maximo) break; saida.add(p.nome()); }
+        return saida;
+    }
+
+    /**
+     * Nota de 0 a 1 para a semelhança entre o termo digitado e um nome (ambos normalizados). Cada palavra digitada é
+     * comparada com as palavras do nome por três critérios: escrita (distância de edição), som (chave fonética do
+     * português) e trechos de três letras em comum; vale o melhor critério, e a nota final é a média das palavras.
+     */
+    static double semelhanca(String termo, String nome) {
+        String[] digitadas = normalizar(termo).split(" "), palavrasNome = normalizar(nome).split(" ");
+        String[] sonsDigitados = paraSom(termo).split(" "), sonsNome = paraSom(nome).split(" ");
+        double soma = 0;
+        for (int i = 0; i < digitadas.length; i++) {
+            String q = digitadas[i];
+            if (LIGACOES.contains(q)) { soma += (" " + normalizar(nome) + " ").contains(" " + q + " ") ? 1 : 0.7; continue; }
+            double melhor = 0;
+            for (int j = 0; j < palavrasNome.length; j++) {
+                if (LIGACOES.contains(palavrasNome[j])) continue;
+                melhor = Math.max(melhor, semelhancaDePalavras(q, palavrasNome[j], sonsDigitados[i], sonsNome[j]));
+            }
+            soma += melhor;
+        }
+        return soma / digitadas.length;
+    }
+
+    /** Texto normalizado preservando o som do cedilha (ç soa como ss), que a normalização comum apagaria. */
+    private static String paraSom(String texto) {
+        return normalizar(texto == null ? "" : texto.toLowerCase(Locale.ROOT).replace("ç", "ss"));
+    }
+
+    private static double semelhancaDePalavras(String q, String p, String somQ, String somP) {
+        if (q.equals(p)) return 1.0;
+        if (q.length() <= 2 || p.length() <= 2) return 0;
+        int maior = Math.max(q.length(), p.length());
+        double escrita = 1.0 - (double) distancia(q, p) / maior;
+        String fq = chaveFonetica(somQ), fp = chaveFonetica(somP);
+        double som = fq.equals(fp) ? 0.95 : 1.0 - (double) distancia(fq, fp) / Math.max(1, Math.max(fq.length(), fp.length())) - 0.05;
+        double trechos = diceDeTrigramas(q, p) * 0.9;
+        // Um prefixo digitado de uma palavra longa conta como boa correspondência ("cenou" para "cenoura").
+        double prefixo = q.length() >= 3 && p.startsWith(q) ? 0.85 : 0;
+        return Math.max(Math.max(escrita, som), Math.max(trechos, prefixo));
+    }
+
+    private static double diceDeTrigramas(String a, String b) {
+        Set<String> ta = trigramas(a), tb = trigramas(b);
+        if (ta.isEmpty() || tb.isEmpty()) return 0;
+        int comuns = 0;
+        for (String t : ta) if (tb.contains(t)) comuns++;
+        return 2.0 * comuns / (ta.size() + tb.size());
+    }
+
+    private static Set<String> trigramas(String palavra) {
+        String x = "^" + palavra + "$";
+        Set<String> conjunto = new HashSet<>();
+        for (int i = 0; i + 3 <= x.length(); i++) conjunto.add(x.substring(i, i + 3));
+        return conjunto;
+    }
+
+    /**
+     * Chave aproximada da pronúncia de uma palavra normalizada em português: agrupa grafias que soam parecido
+     * (ch/x, ss/c/ç/s/z, g/j antes de e e i, qu/k, h mudo, m/n finais, letras dobradas).
+     */
+    static String chaveFonetica(String palavra) {
+        String s = palavra;
+        s = s.replace("ph", "f").replace("th", "t").replace("ck", "k").replace("sh", "x").replace("ch", "x");
+        s = s.replaceAll("qu(?=[ei])", "k").replaceAll("gu(?=[ei])", "g").replace("qu", "ku");
+        s = s.replaceAll("sc(?=[ei])", "s").replaceAll("c(?=[ei])", "s").replace("c", "k");
+        s = s.replaceAll("g(?=[ei])", "j").replace("z", "s").replace("h", "").replace("w", "v").replace("y", "i");
+        s = s.replaceAll("[mn]$", "").replaceAll("m(?=[bp])", "n");
+        s = s.replaceAll("(.)\\1+", "$1");
+        s = s.replaceAll("e$", "i").replaceAll("o$", "u").replaceAll("l(?=[^aeiou]|$)", "u");
+        return s;
     }
 
     /**

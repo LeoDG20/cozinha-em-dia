@@ -21,6 +21,12 @@ public class IngredienteApiController {
         return corretor.corrigir(nome);
     }
 
+    /** Indica se o nome é conhecido e, se não for, quais nomes parecidos podem ser o que a pessoa quis digitar. */
+    @GetMapping("/verificar")
+    public CorretorIngredientes.Verificacao verificar(@RequestParam(defaultValue = "") String nome) {
+        return corretor.verificar(nome);
+    }
+
     @GetMapping("/sugestoes")
     public List<String> sugestoes(@RequestParam(name = "q", defaultValue = "") String termo) {
         return corretor.sugerir(termo, 8);
