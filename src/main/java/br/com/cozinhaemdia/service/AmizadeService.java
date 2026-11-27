@@ -35,13 +35,13 @@ public class AmizadeService {
      */
     @Transactional
     public Amizade convidar(Usuario eu, String email) {
-        if (email == null || email.isBlank()) throw new IllegalArgumentException("Informe o e-mail do amigo.");
+        if (email == null || email.isBlank()) throw new NegocioException("erro.amigo.email.vazio", "Informe o e-mail do amigo.");
         Usuario outro = usuarios.findByEmailIgnoreCase(email.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Não há usuário cadastrado com esse e-mail. Peça para a pessoa criar uma conta primeiro."));
-        if (outro.getId().equals(eu.getId())) throw new IllegalArgumentException("Você não pode adicionar a si mesmo.");
-        if (amizades.saoAmigos(eu.getId(), outro.getId())) throw new IllegalArgumentException("Vocês já são amigos.");
+                .orElseThrow(() -> new NegocioException("erro.usuario.inexistente", "Não há usuário cadastrado com esse e-mail. Peça para a pessoa criar uma conta primeiro."));
+        if (outro.getId().equals(eu.getId())) throw new NegocioException("erro.amigo.proprio", "Você não pode adicionar a si mesmo.");
+        if (amizades.saoAmigos(eu.getId(), outro.getId())) throw new NegocioException("erro.amigo.ja", "Vocês já são amigos.");
         if (amizades.findBySolicitanteIdAndDestinatarioId(eu.getId(), outro.getId()).isPresent())
-            throw new IllegalArgumentException("Você já enviou um pedido para " + outro.getNome() + ". Aguarde a resposta.");
+            throw new NegocioException("erro.amigo.pedido.enviado", "Você já enviou um pedido para " + outro.getNome() + ". Aguarde a resposta.", outro.getNome());
         Optional<Amizade> inversa = amizades.findBySolicitanteIdAndDestinatarioId(outro.getId(), eu.getId());
         if (inversa.isPresent()) {
             Amizade pedido = inversa.get();
@@ -56,7 +56,7 @@ public class AmizadeService {
     public Amizade aceitar(Long amizadeId, Long usuarioId) {
         Amizade a = amizades.findById(amizadeId).orElse(null);
         if (a == null || a.isAceita() || !a.getDestinatario().getId().equals(usuarioId))
-            throw new IllegalArgumentException("Pedido de amizade não encontrado.");
+            throw new NegocioException("erro.amigo.pedido.nao-encontrado", "Pedido de amizade não encontrado.");
         a.setAceita(true);
         return amizades.save(a);
     }
@@ -65,7 +65,7 @@ public class AmizadeService {
     @Transactional
     public void recusarOuCancelar(Long amizadeId, Long usuarioId) {
         Amizade a = amizades.findById(amizadeId).orElse(null);
-        if (a == null || a.isAceita() || !participa(a, usuarioId)) throw new IllegalArgumentException("Pedido de amizade não encontrado.");
+        if (a == null || a.isAceita() || !participa(a, usuarioId)) throw new NegocioException("erro.amigo.pedido.nao-encontrado", "Pedido de amizade não encontrado.");
         amizades.delete(a);
     }
 
@@ -73,7 +73,7 @@ public class AmizadeService {
     @Transactional
     public void desfazer(Long amizadeId, Long usuarioId) {
         Amizade a = amizades.findById(amizadeId).orElse(null);
-        if (a == null || !a.isAceita() || !participa(a, usuarioId)) throw new IllegalArgumentException("Amizade não encontrada.");
+        if (a == null || !a.isAceita() || !participa(a, usuarioId)) throw new NegocioException("erro.amigo.nao-encontrada", "Amizade não encontrada.");
         amizades.delete(a);
     }
 

@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
+import br.com.cozinhaemdia.config.Mensagens;
 import br.com.cozinhaemdia.service.ConversorUnidades;
 import br.com.cozinhaemdia.service.CorretorIngredientes;
 import br.com.cozinhaemdia.service.ReceitaService;
@@ -23,9 +24,10 @@ public class MedidasController {
     public record Resultado(boolean ok, String texto, String aviso) {}
 
     private final CorretorIngredientes corretor;
+    private final Mensagens mensagens;
 
     @Autowired
-    public MedidasController(CorretorIngredientes corretor) { this.corretor = corretor; }
+    public MedidasController(CorretorIngredientes corretor, Mensagens mensagens) { this.corretor = corretor; this.mensagens = mensagens; }
 
     @GetMapping("/medidas")
     public String medidas(@RequestParam(required = false) String valor, @RequestParam(defaultValue = "xícara") String de,
@@ -36,29 +38,30 @@ public class MedidasController {
         model.addAttribute("de", de);
         model.addAttribute("para", para);
         model.addAttribute("ingrediente", ingrediente == null ? "" : ingrediente);
-        model.addAttribute("resultado", valor == null || valor.isBlank() ? null : converter(valor, de, para, ingrediente));
+        model.addAttribute("resultado", valor == null || valor.isBlank() ? null : converter(valor, de, para, ingrediente, mensagens));
         model.addAttribute("referencia", referencia());
         return "medidas";
     }
 
-    static Resultado converter(String valorTexto, String de, String para, String ingrediente) {
+    static Resultado converter(String valorTexto, String de, String para, String ingrediente, Mensagens m) {
         double valor;
         try { valor = Double.parseDouble(valorTexto.trim().replace(',', '.')); }
-        catch (NumberFormatException ex) { return new Resultado(false, null, "Informe um número, por exemplo 2 ou 1,5."); }
-        if (!(valor > 0) || Double.isInfinite(valor)) return new Resultado(false, null, "A quantidade deve ser maior que zero.");
+        catch (NumberFormatException ex) { return new Resultado(false, null, m.get("erro.medidas.numero")); }
+        if (!(valor > 0) || Double.isInfinite(valor)) return new Resultado(false, null, m.get("erro.quantidade.positiva"));
 
         String nome = ingrediente == null ? "" : ingrediente.trim();
         Optional<Double> convertido = ConversorUnidades.converter(valor, de, para, nome);
         if (convertido.isEmpty()) {
             boolean precisaIngrediente = ConversorUnidades.converter(valor, de, para).isEmpty() && nome.isEmpty();
             return new Resultado(false, null, precisaIngrediente
-                    ? "Para passar de peso para volume (ou o contrário), informe o ingrediente: farinha, açúcar, leite, óleo e outros."
-                    : "Não há conversão conhecida entre " + de + " e " + para + (nome.isEmpty() ? "." : " para " + nome + "."));
+                    ? m.get("erro.medidas.precisa-ingrediente")
+                    : nome.isEmpty() ? m.get("erro.medidas.sem-conversao", m.unidade(de), m.unidade(para))
+                    : m.get("erro.medidas.sem-conversao-ingrediente", m.unidade(de), m.unidade(para), nome));
         }
         String aviso = !nome.isEmpty() && ConversorUnidades.converter(valor, de, para).isEmpty()
-                ? "Valor aproximado: depende da densidade do ingrediente e de como ele é medido (rasa ou cheia, peneirada ou não)." : null;
-        String quantidadeOrigem = ReceitaService.formatar(valor) + " " + de + (nome.isEmpty() ? "" : " de " + nome);
-        return new Resultado(true, quantidadeOrigem + " = " + formatarResultado(convertido.get()) + " " + para, aviso);
+                ? m.get("msg.medidas.aproximado") : null;
+        String quantidadeOrigem = ReceitaService.formatar(valor) + " " + m.unidade(de) + (nome.isEmpty() ? "" : " " + m.get("medidas.de-ingrediente", nome));
+        return new Resultado(true, quantidadeOrigem + " = " + formatarResultado(convertido.get()) + " " + m.unidade(para), aviso);
     }
 
     private static String formatarResultado(double v) {

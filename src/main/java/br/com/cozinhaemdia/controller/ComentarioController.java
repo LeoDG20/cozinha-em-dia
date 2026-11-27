@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
+import br.com.cozinhaemdia.config.Mensagens;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.ComentarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,23 +15,24 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class ComentarioController {
     private final ComentarioService comentarios;
+    private final Mensagens mensagens;
 
     @Autowired
-    public ComentarioController(ComentarioService comentarios) { this.comentarios = comentarios; }
+    public ComentarioController(ComentarioService comentarios, Mensagens mensagens) { this.comentarios = comentarios; this.mensagens = mensagens; }
 
     @PostMapping("/receitas/{id}/comentarios")
     public String comentar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth,
                            @RequestParam String texto, RedirectAttributes flash) {
-        try { comentarios.comentar(id, auth.getId(), texto); flash.addFlashAttribute("sucesso", "Comentário publicado."); }
-        catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", ex.getMessage()); }
+        try { comentarios.comentar(id, auth.getId(), texto); flash.addFlashAttribute("sucesso", mensagens.get("msg.comentario.publicado")); }
+        catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", mensagens.de(ex)); }
         return "redirect:/receitas/" + id + "#comentarios";
     }
 
     @PostMapping("/receitas/{id}/comentarios/{comentarioId}/excluir")
     public String excluir(@PathVariable Long id, @PathVariable Long comentarioId, @AuthenticationPrincipal UsuarioAutenticado auth,
                           RedirectAttributes flash) {
-        if (comentarios.excluir(comentarioId, id, auth.getId())) flash.addFlashAttribute("sucesso", "Comentário excluído.");
-        else flash.addFlashAttribute("erro", "Comentário não encontrado.");
+        if (comentarios.excluir(comentarioId, id, auth.getId())) flash.addFlashAttribute("sucesso", mensagens.get("msg.comentario.excluido"));
+        else flash.addFlashAttribute("erro", mensagens.get("erro.comentario.nao-encontrado"));
         return "redirect:/receitas/" + id + "#comentarios";
     }
 }

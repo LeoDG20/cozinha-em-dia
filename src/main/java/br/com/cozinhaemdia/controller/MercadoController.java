@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
+import br.com.cozinhaemdia.config.Mensagens;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.DespensaService;
@@ -32,9 +33,11 @@ public class MercadoController {
     private final DisponibilidadeService disponibilidade;
     private final DespensaService despensa;
     private final UsuarioService usuarios;
+    private final Mensagens mensagens;
 
     @Autowired
-    public MercadoController(DisponibilidadeService disponibilidade, DespensaService despensa, UsuarioService usuarios) {
+    public MercadoController(DisponibilidadeService disponibilidade, DespensaService despensa, UsuarioService usuarios, Mensagens mensagens) {
+        this.mensagens = mensagens;
         this.disponibilidade = disponibilidade; this.despensa = despensa; this.usuarios = usuarios;
     }
 
@@ -62,7 +65,7 @@ public class MercadoController {
         if (receitas != null) flash.addAttribute("receitas", receitas);
         flash.addAttribute("f", "1");
         if (item == null || item.isEmpty()) {
-            flash.addFlashAttribute("erro", "Marque ao menos um item para adicionar à despensa.");
+            flash.addFlashAttribute("erro", mensagens.get("erro.mercado.nenhum-item"));
             return "redirect:/mercado";
         }
         Usuario usuario = usuarios.buscar(auth.getId());
@@ -78,8 +81,8 @@ public class MercadoController {
                 falhas.add(partes.length == 3 ? partes[2] : valor);
             }
         }
-        if (adicionados > 0) flash.addFlashAttribute("sucesso", adicionados == 1 ? "1 item foi somado à despensa." : adicionados + " itens foram somados à despensa.");
-        if (!falhas.isEmpty()) flash.addFlashAttribute("erro", "Não foi possível adicionar: " + String.join(", ", falhas) + ". Confira a unidade na despensa.");
+        if (adicionados > 0) flash.addFlashAttribute("sucesso", mensagens.get("msg.mercado.somado", adicionados));
+        if (!falhas.isEmpty()) flash.addFlashAttribute("erro", mensagens.get("erro.mercado.falhas", String.join(", ", falhas)));
         return "redirect:/mercado";
     }
 }

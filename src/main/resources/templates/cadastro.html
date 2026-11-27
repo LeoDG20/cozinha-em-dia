@@ -1,20 +1,23 @@
 <!doctype html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head><th:block th:replace="~{fragments/head :: head('Criar conta')}"></th:block></head>
+<html th:lang="${#locale.toLanguageTag()}" lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head(#{cadastro.titulo})}"></th:block></head>
 <body>
 <main class="acesso">
   <div class="acesso-form">
-    <a class="brand" th:href="@{/login}">Cozinha em Dia</a>
-    <h1>Criar conta</h1>
+    <div class="acesso-topo">
+      <a class="brand" th:href="@{/login}">Cozinha em Dia</a>
+      <th:block th:replace="~{fragments/idioma :: seletor}"></th:block>
+    </div>
+    <h1 th:text="#{cadastro.titulo}">Criar conta</h1>
     <div class="alerta erro" th:if="${erro}" th:text="${erro}" style="margin:0"></div>
     <form th:action="@{/cadastro}" method="post">
-      <label>Nome<input type="text" name="nome" required maxlength="100" autocomplete="name" autofocus></label>
-      <label>E-mail<input type="email" name="email" required autocomplete="email"></label>
-      <label>Senha <small>mínimo de 6 caracteres</small><input type="password" name="senha" minlength="6" required autocomplete="new-password"></label>
-      <label>Confirme a senha<input type="password" name="confirmarSenha" minlength="6" required autocomplete="new-password"></label>
-      <button class="btn btn-primary btn-block" type="submit">Criar conta</button>
+      <label><span th:text="#{campo.nome}">Nome</span><input type="text" name="nome" required maxlength="100" autocomplete="name" autofocus></label>
+      <label><span th:text="#{campo.email}">E-mail</span><input type="email" name="email" required autocomplete="email"></label>
+      <label><span th:text="#{campo.senha}">Senha</span> <small th:text="#{cadastro.senha-minimo}">mínimo de 6 caracteres</small><input type="password" name="senha" minlength="6" required autocomplete="new-password"></label>
+      <label><span th:text="#{cadastro.confirmar}">Confirme a senha</span><input type="password" name="confirmarSenha" minlength="6" required autocomplete="new-password"></label>
+      <button class="btn btn-primary btn-block" type="submit" th:text="#{cadastro.titulo}">Criar conta</button>
     </form>
-    <p class="acesso-rodape">Já tem conta? <a th:href="@{/login}">Entrar</a></p>
+    <p class="acesso-rodape"><span th:text="#{cadastro.ja-tem}">Já tem conta?</span> <a th:href="@{/login}" th:text="#{login.titulo}">Entrar</a></p>
   </div>
 </main>
 </body>

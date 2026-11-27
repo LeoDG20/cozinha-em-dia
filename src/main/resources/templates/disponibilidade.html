@@ -1,26 +1,26 @@
 <!doctype html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head><th:block th:replace="~{fragments/head :: head('O que posso fazer')}"></th:block></head>
+<html th:lang="${#locale.toLanguageTag()}" lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head(#{disp.titulo})}"></th:block></head>
 <body>
 <th:block th:replace="~{fragments/header :: header}"></th:block>
 <main class="page estreita">
   <div class="page-head">
     <div>
-      <h1>O que posso fazer</h1>
+      <h1 th:text="#{disp.titulo}">O que posso fazer</h1>
     </div>
   </div>
 
   <div class="legenda">
-    <div><strong th:text="${disponiveis}">0</strong><span class="situacao available">prontas</span></div>
-    <div><strong th:text="${parciais}">0</strong><span class="situacao partial">faltam poucos itens</span></div>
-    <div><strong th:text="${indisponiveis}">0</strong><span class="situacao unavailable">não disponíveis</span></div>
+    <div><strong th:text="${disponiveis}">0</strong><span class="situacao available" th:text="#{disp.prontas}">prontas</span></div>
+    <div><strong th:text="${parciais}">0</strong><span class="situacao partial" th:text="#{disp.parciais}">faltam poucos itens</span></div>
+    <div><strong th:text="${indisponiveis}">0</strong><span class="situacao unavailable" th:text="#{disp.indisponiveis}">não disponíveis</span></div>
   </div>
 
   <div th:if="${!#lists.isEmpty(analises)}">
     <th:block th:each="grupo : ${T(java.util.List).of('available', 'partial', 'unavailable')}">
-      <h2 class="secao" style="font-size:18px;margin-bottom:12px" th:if="${grupo == 'available' && disponiveis > 0}">Pode preparar agora</h2>
-      <h2 class="secao" style="font-size:18px;margin-bottom:12px" th:if="${grupo == 'partial' && parciais > 0}">Falta pouco</h2>
-      <h2 class="secao" style="font-size:18px;margin-bottom:12px" th:if="${grupo == 'unavailable' && indisponiveis > 0}">Faltam vários ingredientes</h2>
+      <h2 class="secao" style="font-size:18px;margin-bottom:12px" th:if="${grupo == 'available' && disponiveis > 0}" th:text="#{disp.g-available}">Pode preparar agora</h2>
+      <h2 class="secao" style="font-size:18px;margin-bottom:12px" th:if="${grupo == 'partial' && parciais > 0}" th:text="#{disp.g-partial}">Falta pouco</h2>
+      <h2 class="secao" style="font-size:18px;margin-bottom:12px" th:if="${grupo == 'unavailable' && indisponiveis > 0}" th:text="#{disp.g-unavailable}">Faltam vários ingredientes</h2>
       <th:block th:each="item : ${analises}" th:if="${item.status.classe == grupo}">
         <article class="linha-receita">
           <a class="miniatura" th:href="@{/receitas/{id}(id=${item.receita.id})}" tabindex="-1" aria-hidden="true">
@@ -28,19 +28,19 @@
           </a>
           <div>
             <h3><a th:href="@{/receitas/{id}(id=${item.receita.id})}" th:text="${item.receita.nome}">Receita</a></h3>
-            <p class="info"><span th:text="${item.receita.tempoPreparoMin != null ? item.receita.tempoPreparoMin + ' min' : ''}">20 min</span> · <span th:text="${item.itensOk + ' de ' + item.totalItens + ' ingredientes suficientes'}">3 de 4</span></p>
-            <p class="falta-linha" th:if="${!#lists.isEmpty(item.faltantes)}">Falta: <span th:each="f, st : ${item.faltantes}"><span th:text="${f.nome}">Ovo</span> (<span th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(f.quantidadeFaltante) + ' ' + f.unidade}">2 un</span>)<span th:if="${!st.last}">, </span></span></p>
+            <p class="info"><span th:text="${item.receita.tempoPreparoMin != null ? #messages.msg('unidade.min', item.receita.tempoPreparoMin) : ''}">20 min</span> · <span th:text="#{disp.suficientes(${item.itensOk}, ${item.totalItens})}">3 de 4</span></p>
+            <p class="falta-linha" th:if="${!#lists.isEmpty(item.faltantes)}"><span th:text="#{disp.falta}">Falta:</span> <span th:each="f, st : ${item.faltantes}"><span th:text="${f.nome}">Ovo</span> (<span th:text="${T(br.com.cozinhaemdia.service.ReceitaService).formatar(f.quantidadeFaltante) + ' ' + @mensagens.unidade(f.unidade)}">2 un</span>)<span th:if="${!st.last}">, </span></span></p>
           </div>
-          <a class="btn btn-secondary btn-sm" th:href="@{/receitas/{id}(id=${item.receita.id})}">Ver receita</a>
+          <a class="btn btn-secondary btn-sm" th:href="@{/receitas/{id}(id=${item.receita.id})}" th:text="#{compartilhadas.ver}">Ver receita</a>
         </article>
       </th:block>
     </th:block>
   </div>
 
   <div class="vazio" th:if="${#lists.isEmpty(analises)}">
-    <h2>Nenhuma receita para comparar</h2>
-    <p>Cadastre uma receita para ver quais dá para preparar com a despensa.</p>
-    <a class="btn btn-primary" th:href="@{/receitas/nova}">Cadastrar receita</a>
+    <h2 th:text="#{disp.vazio.titulo}">Nenhuma receita para comparar</h2>
+    <p th:text="#{disp.vazio.texto}">Cadastre uma receita para ver quais dá para preparar com a despensa.</p>
+    <a class="btn btn-primary" th:href="@{/receitas/nova}" th:text="#{receitas.vazio.cadastrar}">Cadastrar receita</a>
   </div>
 </main>
 </body>

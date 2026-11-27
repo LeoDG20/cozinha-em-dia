@@ -6,17 +6,18 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" th:href="@{/}"><svg class="marca" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 15h22v2a9 9 0 01-9 9h-4a9 9 0 01-9-9z" fill="currentColor"/><path d="M11 11c0-2.500 2-2.500 2-5M17 11c0-2.500 2-2.500 2-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Cozinha em Dia</a>
-      <nav class="main-nav" aria-label="Principal">
-        <a th:href="@{/}">Início</a>
-        <a th:href="@{/receitas}" data-tambem="/o-que-posso-fazer">Receitas</a>
-        <a th:href="@{/despensa}">Despensa</a>
-        <a th:href="@{/mercado}">Mercado</a>
-        <a th:href="@{/amigos}" data-tambem="/compartilhadas">Amigos<span class="nav-badge" th:if="${novidadesAmigos != null && novidadesAmigos > 0}" th:text="${novidadesAmigos}">1</span></a>
+      <nav class="main-nav" th:attr="aria-label=#{nav.principal}">
+        <a th:href="@{/}" th:text="#{nav.inicio}">Início</a>
+        <a th:href="@{/receitas}" data-tambem="/o-que-posso-fazer" th:text="#{nav.receitas}">Receitas</a>
+        <a th:href="@{/despensa}" th:text="#{nav.despensa}">Despensa</a>
+        <a th:href="@{/mercado}" th:text="#{nav.mercado}">Mercado</a>
+        <a th:href="@{/amigos}" data-tambem="/compartilhadas"><span th:text="#{nav.amigos}">Amigos</span><span class="nav-badge" th:if="${novidadesAmigos != null && novidadesAmigos > 0}" th:text="${novidadesAmigos}">1</span></a>
       </nav>
       <div class="user-menu">
+        <th:block th:replace="~{fragments/idioma :: seletor}"></th:block>
         <span class="avatar" aria-hidden="true" th:text="${#strings.substring(#authentication.principal.nome,0,1).toUpperCase()}">C</span>
         <span class="user-name" th:text="${#authentication.principal.nome}">Conta</span>
-        <form th:action="@{/logout}" method="post"><button class="logout" type="submit" title="Sair" aria-label="Sair"><svg class="i"><use href="#i-sair"/></svg></button></form>
+        <form th:action="@{/logout}" method="post"><button class="logout" type="submit" th:title="#{nav.sair}" th:attr="aria-label=#{nav.sair}"><svg class="i"><use href="#i-sair"/></svg></button></form>
       </div>
     </div>
   </header>

@@ -1,6 +1,13 @@
 (function () {
   'use strict';
 
+  // Textos da interface vindos do servidor (window.TEXTOS), já no idioma escolhido; {0}, {1}... recebem os argumentos.
+  function traduzir(chave) {
+    var modelo = (window.TEXTOS && window.TEXTOS[chave]) || '';
+    var args = Array.prototype.slice.call(arguments, 1);
+    return modelo.replace(/\{(\d+)\}/g, function (_, i) { return args[i] === undefined ? '' : args[i]; });
+  }
+
   function normalizar(texto) {
     return (texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
   }
@@ -41,7 +48,7 @@
     if (campo.hasAttribute('data-limite') && f) {
       var limite = parseInt(campo.getAttribute('data-limite'), 10);
       if (f.size > limite) {
-        window.alert('O arquivo "' + f.name + '" tem mais de ' + Math.round(limite / 1048576) + ' MB e não poderá ser enviado.');
+        window.alert(traduzir('arquivoGrande', f.name, Math.round(limite / 1048576)));
         campo.value = '';
         return;
       }
@@ -110,7 +117,7 @@
         limparSugestoes(campo);
         var dica = document.createElement('span');
         dica.className = 'dica-correcao';
-        dica.textContent = 'Usando "' + nome + '".';
+        dica.textContent = traduzir('usando', nome);
         campo.parentElement.appendChild(dica);
         campo.dispatchEvent(new Event('change', { bubbles: true }));
       });
@@ -120,7 +127,7 @@
       var manter = document.createElement('button');
       manter.type = 'button';
       manter.className = 'manter';
-      manter.textContent = 'Manter "' + original + '"';
+      manter.textContent = traduzir('manter', original);
       manter.addEventListener('click', function () { limparSugestoes(campo); });
       area.appendChild(manter);
     }
@@ -144,12 +151,12 @@
               campo.value = v.corrigido;
               var dica = document.createElement('span');
               dica.className = 'dica-correcao';
-              dica.textContent = 'Corrigido de "' + v.original + '" para "' + v.corrigido + '".';
+              dica.textContent = traduzir('corrigido', v.original, v.corrigido);
               campo.parentElement.appendChild(dica);
               var outras = (v.sugestoes || []).filter(function (n) { return n !== v.corrigido; });
-              if (outras.length) mostrarAlternativas(campo, 'Ou então:', outras, null);
+              if (outras.length) mostrarAlternativas(campo, traduzir('ouEntao'), outras, null);
             } else if (v.sugestoes && v.sugestoes.length) {
-              mostrarAlternativas(campo, 'Você quis dizer:', v.sugestoes, v.original);
+              mostrarAlternativas(campo, traduzir('quisDizer'), v.sugestoes, v.original);
             }
           })
           .catch(function () { /* a correção também é feita no servidor ao salvar */ });
@@ -204,7 +211,7 @@
       var itens = document.querySelectorAll(copiar.getAttribute('data-copiar') + ' li');
       var texto = Array.prototype.map.call(itens, function (li) { return '- ' + li.getAttribute('data-linha-texto'); }).join('\n');
       var original = copiar.textContent;
-      var pronto = function () { copiar.textContent = 'Lista copiada'; setTimeout(function () { copiar.textContent = original; }, 1800); };
+      var pronto = function () { copiar.textContent = traduzir('copiada'); setTimeout(function () { copiar.textContent = original; }, 1800); };
       if (navigator.clipboard) navigator.clipboard.writeText(texto).then(pronto);
       return;
     }

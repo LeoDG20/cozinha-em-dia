@@ -455,3 +455,10 @@ table.tabela { width: 100%; border-collapse: collapse; }
 .lista-comentarios .texto { margin-top: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .form-comentario { display: grid; gap: 10px; }
 .form-comentario textarea { min-height: 80px; }
+
+/* Seletor de idioma */
+.idiomas { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.idiomas a { padding: 5px 9px; font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--ink-2); }
+.idiomas a:hover { text-decoration: none; background: var(--bg); color: var(--ink); }
+.idiomas a.ativo { background: var(--brand-soft); color: var(--brand-dark); }
+.acesso-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }

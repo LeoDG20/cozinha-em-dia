@@ -39,10 +39,10 @@ public class ComentarioService {
     @Transactional
     public Comentario comentar(Long receitaId, Long autorId, String texto) {
         String limpo = texto == null ? "" : texto.trim();
-        if (limpo.isEmpty()) throw new IllegalArgumentException("Escreva o comentário antes de enviar.");
-        if (limpo.length() > TAMANHO_MAXIMO) throw new IllegalArgumentException("O comentário deve ter no máximo " + TAMANHO_MAXIMO + " caracteres.");
+        if (limpo.isEmpty()) throw new NegocioException("erro.comentario.vazio", "Escreva o comentário antes de enviar.");
+        if (limpo.length() > TAMANHO_MAXIMO) throw new NegocioException("erro.comentario.longo", "O comentário deve ter no máximo " + TAMANHO_MAXIMO + " caracteres.", TAMANHO_MAXIMO);
         Receita receita = compartilhamentos.visivelPara(receitaId, autorId)
-                .orElseThrow(() -> new IllegalArgumentException("Receita não encontrada."));
+                .orElseThrow(() -> new NegocioException("erro.receita.nao-encontrada", "Receita não encontrada."));
         Usuario autor = usuarios.buscar(autorId);
         return comentarios.save(new Comentario(receita, autor, limpo));
     }

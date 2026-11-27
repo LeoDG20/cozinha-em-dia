@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <th:block th:fragment="amigos(ativa)">
-  <nav class="abas" aria-label="Amigos e receitas recebidas">
-    <a th:href="@{/amigos}" th:classappend="${ativa == 'amigos'} ? 'ativa'" th:attr="aria-current=${ativa == 'amigos'} ? 'page'">Amigos<span class="nav-badge" th:if="${pedidosAmizade != null && pedidosAmizade > 0}" th:text="${pedidosAmizade}">1</span></a>
-    <a th:href="@{/compartilhadas}" th:classappend="${ativa == 'recebidas'} ? 'ativa'" th:attr="aria-current=${ativa == 'recebidas'} ? 'page'">Receitas recebidas<span class="nav-badge" th:if="${novasCompartilhadas != null && novasCompartilhadas > 0}" th:text="${novasCompartilhadas}">1</span></a>
+  <nav class="abas" th:attr="aria-label=#{abas.rotulo}">
+    <a th:href="@{/amigos}" th:classappend="${ativa == 'amigos'} ? 'ativa'" th:attr="aria-current=${ativa == 'amigos'} ? 'page'"><span th:text="#{nav.amigos}">Amigos</span><span class="nav-badge" th:if="${pedidosAmizade != null && pedidosAmizade > 0}" th:text="${pedidosAmizade}">1</span></a>
+    <a th:href="@{/compartilhadas}" th:classappend="${ativa == 'recebidas'} ? 'ativa'" th:attr="aria-current=${ativa == 'recebidas'} ? 'page'"><span th:text="#{abas.recebidas}">Receitas recebidas</span><span class="nav-badge" th:if="${novasCompartilhadas != null && novasCompartilhadas > 0}" th:text="${novasCompartilhadas}">1</span></a>
   </nav>
 </th:block>
 </body>

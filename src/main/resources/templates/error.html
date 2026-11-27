@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head><th:block th:replace="~{fragments/head :: head('Erro')}"></th:block></head>
+<html th:lang="${#locale.toLanguageTag()}" lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head(#{erro.pagina.titulo})}"></th:block></head>
 <body>
 <main class="erro-pagina">
   <div class="erro-caixa">
     <span class="codigo" th:text="${status != null ? status : 500}">404</span>
-    <h1 th:text="${status == 404 ? 'Página não encontrada' : (status == 403 ? 'Acesso não permitido' : 'Algo deu errado')}">Página não encontrada</h1>
-    <p class="muted" th:text="${status == 404 ? 'O endereço não existe ou a receita foi removida.' : (status == 403 ? 'Você não tem permissão para abrir esta página.' : 'Não foi possível concluir a operação. Tente novamente em instantes.')}">Mensagem</p>
-    <a class="btn btn-primary" th:href="@{/}">Voltar ao início</a>
+    <h1 th:text="${status == 404 ? #messages.msg('erro.pagina.404.titulo') : (status == 403 ? #messages.msg('erro.pagina.403.titulo') : #messages.msg('erro.pagina.500.titulo'))}">Página não encontrada</h1>
+    <p class="muted" th:text="${status == 404 ? #messages.msg('erro.pagina.404.texto') : (status == 403 ? #messages.msg('erro.pagina.403.texto') : #messages.msg('erro.pagina.500.texto'))}">Mensagem</p>
+    <a class="btn btn-primary" th:href="@{/}" th:text="#{erro.pagina.voltar}">Voltar ao início</a>
   </div>
 </main>
 </body>

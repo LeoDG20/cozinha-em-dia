@@ -49,7 +49,12 @@ public final class ConversorUnidades {
             Map.entry("colher sopa", "colher"), Map.entry("cs", "colher"),
             Map.entry("colher de cha", "colher de chá"), Map.entry("colheres de chá", "colher de chá"),
             Map.entry("colheres de cha", "colher de chá"), Map.entry("colher cha", "colher de chá"), Map.entry("cc", "colher de chá"),
-            Map.entry("xicara", "xícara"), Map.entry("xicaras", "xícara"), Map.entry("xícaras", "xícara"));
+            Map.entry("xicara", "xícara"), Map.entry("xicaras", "xícara"), Map.entry("xícaras", "xícara"),
+            Map.entry("cup", "xícara"), Map.entry("cups", "xícara"),
+            Map.entry("tbsp", "colher"), Map.entry("tablespoon", "colher"), Map.entry("tablespoons", "colher"),
+            Map.entry("tsp", "colher de chá"), Map.entry("teaspoon", "colher de chá"), Map.entry("teaspoons", "colher de chá"),
+            Map.entry("gram", "g"), Map.entry("grams", "g"), Map.entry("liter", "l"), Map.entry("liters", "l"),
+            Map.entry("unit", "unidade"), Map.entry("units", "unidade"), Map.entry("clove", "dente"), Map.entry("cloves", "dente"));
 
     /** Gramas por mililitro de ingredientes comuns (aproximação). Chaves sem acento, da mais específica para a mais geral. */
     private static final Map<String, Double> DENSIDADES = new LinkedHashMap<>();

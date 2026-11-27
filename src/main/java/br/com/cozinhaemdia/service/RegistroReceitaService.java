@@ -22,7 +22,7 @@ public class RegistroReceitaService {
                         List<String> ingredienteNomes, List<String> ingredienteQuantidades, List<String> ingredienteUnidades) {}
 
     /** Receita gravada e avisos sobre correções automáticas feitas nos ingredientes. */
-    public record Resultado(Receita receita, List<String> avisos) {}
+    public record Resultado(Receita receita, List<CorretorIngredientes.Aviso> avisos) {}
 
     private final ReceitaService receitas;
     private final PreparoService preparo;

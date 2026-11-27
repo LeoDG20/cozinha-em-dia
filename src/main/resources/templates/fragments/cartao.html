@@ -2,20 +2,20 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <article class="cartao" th:fragment="cartao(a, com)">
-  <a class="foto" th:href="@{/receitas/{id}(id=${a.receita.id})}" th:attr="aria-label=${'Abrir ' + a.receita.nome}" tabindex="-1">
+  <a class="foto" th:href="@{/receitas/{id}(id=${a.receita.id})}" th:attr="aria-label=#{cartao.abrir(${a.receita.nome})}" tabindex="-1">
     <img th:if="${a.receita.capaUrl != null}" th:src="${a.receita.capaUrl}" alt="" loading="lazy">
     <span class="sem-foto" th:if="${a.receita.capaUrl == null}"><svg class="i"><use href="#i-prato"/></svg></span>
   </a>
   <div class="corpo">
-    <span class="situacao" th:classappend="${a.status.classe}" th:text="${a.status.rotulo}">Pode preparar</span>
+    <span class="situacao" th:classappend="${a.status.classe}" th:text="${#messages.msg('status.' + a.status.classe)}">Pode preparar</span>
     <h3><a th:href="@{/receitas/{id}(id=${a.receita.id})}" th:text="${a.receita.nome}">Nome da receita</a></h3>
     <p class="descricao" th:text="${a.receita.descricao}">Descrição</p>
-    <p class="detalhe" th:if="${!#lists.isEmpty(a.faltantes)}">Falta: <span th:text="${a.faltantes[0].nome + (a.faltantes.size() > 1 ? ' e mais ' + (a.faltantes.size() - 1) : '')}">ingrediente</span></p>
-    <p class="detalhe" th:if="${a.receita.adaptada}"><span th:text="${'Adaptada de ' + a.receita.origemNome}">Adaptada de</span></p>
-    <p class="detalhe" th:if="${com != null && !#lists.isEmpty(com)}" th:title="${'Compartilhada com ' + #strings.listJoin(com, ', ')}"><svg class="i"><use href="#i-pessoas"/></svg><span th:text="${'Compartilhada com ' + #strings.listJoin(com, ', ')}">Compartilhada com</span></p>
+    <p class="detalhe" th:if="${!#lists.isEmpty(a.faltantes)}" th:text="${a.faltantes.size() > 1} ? #{cartao.falta-mais(${a.faltantes[0].nome}, ${a.faltantes.size() - 1})} : #{cartao.falta(${a.faltantes[0].nome})}">Falta: ingrediente</p>
+    <p class="detalhe" th:if="${a.receita.adaptada}" th:text="#{cartao.adaptada(${a.receita.origemNome})}">Adaptada de</p>
+    <p class="detalhe" th:if="${com != null && !#lists.isEmpty(com)}" th:title="#{cartao.compartilhada(${#strings.listJoin(com, ', ')})}"><svg class="i"><use href="#i-pessoas"/></svg><span th:text="#{cartao.compartilhada(${#strings.listJoin(com, ', ')})}">Compartilhada com</span></p>
     <div class="rodape">
       <span class="meta">
-        <span><svg class="i"><use href="#i-relogio"/></svg><span th:text="${a.receita.tempoPreparoMin != null ? a.receita.tempoPreparoMin + ' min' : '-'}">20 min</span></span>
+        <span><svg class="i"><use href="#i-relogio"/></svg><span th:text="${a.receita.tempoPreparoMin != null ? #messages.msg('unidade.min', a.receita.tempoPreparoMin) : '-'}">20 min</span></span>
         <span th:if="${a.receita.porcoes != null}"><svg class="i"><use href="#i-pessoas"/></svg><span th:text="${a.receita.porcoes}">2</span></span>
       </span>
     </div>

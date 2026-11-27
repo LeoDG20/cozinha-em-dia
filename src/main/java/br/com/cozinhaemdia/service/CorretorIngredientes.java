@@ -37,7 +37,12 @@ public class CorretorIngredientes {
     public record Verificacao(String original, boolean conhecido, String corrigido, boolean alterado, List<String> sugestoes) {}
 
     /** Texto de ingredientes (uma linha por item) após a correção, com os avisos para o usuário. */
-    public record TextoCorrigido(String texto, List<String> avisos) {}
+    public record TextoCorrigido(String texto, List<Aviso> avisos) {}
+
+    /** Correção automática feita em um nome de ingrediente, para informar o usuário no idioma dele. */
+    public record Aviso(String original, String corrigido) {
+        @Override public String toString() { return "\"" + original + "\" foi corrigido para \"" + corrigido + "\"."; }
+    }
 
     /** Nota mínima (de 0 a 1) para um nome ser oferecido como "parecido". */
     private static final double LIMIAR_SEMELHANCA = 0.62;
@@ -84,14 +89,14 @@ public class CorretorIngredientes {
 
     /** Corrige o primeiro campo de cada linha no formato {@code Nome | quantidade | unidade}. */
     public TextoCorrigido corrigirLinhas(String texto) {
-        List<String> avisos = new ArrayList<>();
+        List<Aviso> avisos = new ArrayList<>();
         if (texto == null || texto.isBlank()) return new TextoCorrigido(texto == null ? "" : texto, avisos);
         List<String> linhas = new ArrayList<>();
         for (String linha : texto.split("\\R", -1)) {
             String[] partes = linha.split("\\|", -1);
             if (partes.length == 3 && !partes[0].isBlank()) {
                 Correcao c = corrigir(partes[0]);
-                if (c.alterado()) avisos.add("\"" + c.original() + "\" foi corrigido para \"" + c.corrigido() + "\".");
+                if (c.alterado()) avisos.add(new Aviso(c.original(), c.corrigido()));
                 linhas.add(c.corrigido() + " | " + partes[1].trim() + " | " + partes[2].trim());
             } else {
                 linhas.add(linha);

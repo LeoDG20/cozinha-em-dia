@@ -51,18 +51,18 @@ public class ArmazenamentoArquivos {
 
     public void validarImagem(MultipartFile arquivo) {
         if (vazio(arquivo)) return;
-        if (arquivo.getSize() > TAMANHO_MAXIMO_IMAGEM) throw new IllegalArgumentException("A imagem deve ter no máximo 5 MB.");
+        if (arquivo.getSize() > TAMANHO_MAXIMO_IMAGEM) throw new NegocioException("erro.arquivo.imagem.tamanho", "A imagem deve ter no máximo 5 MB.");
         String extensao = detectarExtensao(cabecalho(arquivo));
         if (extensao == null || extensao.equals("mp4") || extensao.equals("webm"))
-            throw new IllegalArgumentException("Envie uma imagem nos formatos JPG, PNG, GIF ou WebP.");
+            throw new NegocioException("erro.arquivo.imagem.formato", "Envie uma imagem nos formatos JPG, PNG, GIF ou WebP.");
     }
 
     public void validarVideo(MultipartFile arquivo) {
         if (vazio(arquivo)) return;
-        if (arquivo.getSize() > TAMANHO_MAXIMO_VIDEO) throw new IllegalArgumentException("O vídeo deve ter no máximo 60 MB.");
+        if (arquivo.getSize() > TAMANHO_MAXIMO_VIDEO) throw new NegocioException("erro.arquivo.video.tamanho", "O vídeo deve ter no máximo 60 MB.");
         String extensao = detectarExtensao(cabecalho(arquivo));
         if (!"mp4".equals(extensao) && !"webm".equals(extensao))
-            throw new IllegalArgumentException("Envie um vídeo nos formatos MP4 ou WebM.");
+            throw new NegocioException("erro.arquivo.video.formato", "Envie um vídeo nos formatos MP4 ou WebM.");
     }
 
     /** Valida e grava a imagem; devolve o nome do arquivo gravado. */
@@ -138,7 +138,7 @@ public class ArmazenamentoArquivos {
         try (InputStream entrada = arquivo.getInputStream()) {
             return entrada.readNBytes(16);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Não foi possível ler o arquivo enviado.");
+            throw new NegocioException("erro.arquivo.leitura", "Não foi possível ler o arquivo enviado.");
         }
     }
 

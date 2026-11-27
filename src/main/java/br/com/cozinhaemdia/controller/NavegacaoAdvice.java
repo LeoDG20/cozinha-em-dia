@@ -3,6 +3,7 @@ package br.com.cozinhaemdia.controller;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.AmizadeService;
 import br.com.cozinhaemdia.service.CompartilhamentoService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,10 @@ public class NavegacaoAdvice {
     public NavegacaoAdvice(CompartilhamentoService compartilhamentos, AmizadeService amizades) {
         this.compartilhamentos = compartilhamentos; this.amizades = amizades;
     }
+
+    /** Endereço da página atual, usado pelo seletor de idioma para voltar à mesma página. */
+    @ModelAttribute("caminho")
+    public String caminho(HttpServletRequest request) { return request.getRequestURI(); }
 
     /** Novidades na área de amigos: pedidos de amizade a responder e receitas recebidas ainda não salvas. */
     @ModelAttribute("novidadesAmigos")

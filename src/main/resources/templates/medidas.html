@@ -1,23 +1,23 @@
 <!doctype html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head><th:block th:replace="~{fragments/head :: head('Medidas')}"></th:block></head>
+<html th:lang="${#locale.toLanguageTag()}" lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head(#{medidas.titulo})}"></th:block></head>
 <body>
 <th:block th:replace="~{fragments/header :: header}"></th:block>
 <main class="page estreita">
   <div class="page-head">
     <div>
-      <h1>Conversor de medidas</h1>
-      <p class="muted">Xícaras e colheres para gramas e mililitros, e o contrário.</p>
+      <h1 th:text="#{medidas.cabecalho}">Conversor de medidas</h1>
+      <p class="muted" th:text="#{medidas.sub}">Xícaras e colheres para gramas e mililitros, e o contrário.</p>
     </div>
   </div>
 
   <section class="painel">
     <form class="conversor" th:action="@{/medidas}" method="get">
-      <label>Quantidade<input type="text" name="valor" inputmode="decimal" placeholder="2" th:value="${valor}" required autocomplete="off"></label>
-      <label>De<select name="de"><option th:each="u : ${unidades}" th:value="${u}" th:text="${u}" th:selected="${u == de}">xícara</option></select></label>
-      <label>Para<select name="para"><option th:each="u : ${unidades}" th:value="${u}" th:text="${u}" th:selected="${u == para}">g</option></select></label>
-      <label class="campo-ingrediente">Ingrediente <small>necessário para peso e volume</small><input type="text" name="ingrediente" list="lista-ingredientes" th:value="${ingrediente}" placeholder="Ex.: farinha de trigo" autocomplete="off"></label>
-      <button class="btn btn-primary" type="submit">Converter</button>
+      <label><span th:text="#{medidas.quantidade}">Quantidade</span><input type="text" name="valor" inputmode="decimal" placeholder="2" th:value="${valor}" required autocomplete="off"></label>
+      <label><span th:text="#{medidas.de}">De</span><select name="de"><option th:each="u : ${unidades}" th:value="${u}" th:text="${@mensagens.unidade(u)}" th:selected="${u == de}">xícara</option></select></label>
+      <label><span th:text="#{medidas.para}">Para</span><select name="para"><option th:each="u : ${unidades}" th:value="${u}" th:text="${@mensagens.unidade(u)}" th:selected="${u == para}">g</option></select></label>
+      <label class="campo-ingrediente"><span th:text="#{medidas.ingrediente}">Ingrediente</span> <small th:text="#{medidas.ingrediente-dica}">necessário para peso e volume</small><input type="text" name="ingrediente" list="lista-ingredientes" th:value="${ingrediente}" th:placeholder="#{medidas.ingrediente-ph}" autocomplete="off"></label>
+      <button class="btn btn-primary" type="submit" th:text="#{medidas.converter}">Converter</button>
     </form>
     <datalist id="lista-ingredientes"><option th:each="n : ${sugestoes}" th:value="${n}"></option></datalist>
 
@@ -30,25 +30,25 @@
 
   <div class="duas-tabelas">
     <section>
-      <h2 class="secao">Medidas caseiras</h2>
+      <h2 class="secao" th:text="#{medidas.caseiras}">Medidas caseiras</h2>
       <div class="tabela-wrap">
         <table class="tabela">
-          <thead><tr><th>Medida</th><th>Equivale a</th></tr></thead>
+          <thead><tr><th th:text="#{medidas.col-medida}">Medida</th><th th:text="#{medidas.col-equivale}">Equivale a</th></tr></thead>
           <tbody>
-            <tr><td>1 xícara</td><td>240 ml</td></tr>
-            <tr><td>1 colher (de sopa)</td><td>15 ml</td></tr>
-            <tr><td>1 colher de chá</td><td>5 ml</td></tr>
-            <tr><td>1 litro</td><td>1000 ml</td></tr>
-            <tr><td>1 quilo</td><td>1000 g</td></tr>
+            <tr><td th:text="#{medidas.l1}">1 xícara</td><td>240 ml</td></tr>
+            <tr><td th:text="#{medidas.l2}">1 colher (de sopa)</td><td>15 ml</td></tr>
+            <tr><td th:text="#{medidas.l3}">1 colher de chá</td><td>5 ml</td></tr>
+            <tr><td th:text="#{medidas.l4}">1 litro</td><td>1000 ml</td></tr>
+            <tr><td th:text="#{medidas.l5}">1 quilo</td><td>1000 g</td></tr>
           </tbody>
         </table>
       </div>
     </section>
     <section>
-      <h2 class="secao">Ingredientes, em gramas</h2>
+      <h2 class="secao" th:text="#{medidas.ref-titulo}">Ingredientes, em gramas</h2>
       <div class="tabela-wrap">
         <table class="tabela">
-          <thead><tr><th>Ingrediente</th><th>1 xícara</th><th>1 colher</th></tr></thead>
+          <thead><tr><th th:text="#{medidas.col-ingrediente}">Ingrediente</th><th th:text="#{medidas.col-xicara}">1 xícara</th><th th:text="#{medidas.col-colher}">1 colher</th></tr></thead>
           <tbody>
             <tr th:each="e : ${referencia}"><td th:text="${e.ingrediente}">Farinha</td><td th:text="${e.xicara}">120 g</td><td th:text="${e.colher}">7,5 g</td></tr>
           </tbody>
@@ -56,7 +56,7 @@
       </div>
     </section>
   </div>
-  <p class="rodape-nota">Valores aproximados.</p>
+  <p class="rodape-nota" th:text="#{medidas.nota}">Valores aproximados.</p>
 </main>
 </body>
 </html>

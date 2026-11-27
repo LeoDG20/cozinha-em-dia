@@ -108,8 +108,8 @@ class CorretorIngredientesTest {
 
         assertEquals("Farinha | 200 | g\nOvo | 2 | unidade\n\nLeite | 1,5 | l", resultado.texto());
         assertEquals(2, resultado.avisos().size());
-        assertTrue(resultado.avisos().get(0).contains("farna"));
-        assertTrue(resultado.avisos().get(0).contains("Farinha"));
+        assertTrue(resultado.avisos().get(0).original().contains("farna"));
+        assertTrue(resultado.avisos().get(0).corrigido().contains("Farinha"));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
+import br.com.cozinhaemdia.config.Mensagens;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.UsuarioService;
@@ -20,9 +21,10 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class AuthController {
     private final UsuarioService usuarios;
+    private final Mensagens mensagens;
 
     @Autowired
-    public AuthController(UsuarioService usuarios) { this.usuarios = usuarios; }
+    public AuthController(UsuarioService usuarios, Mensagens mensagens) { this.usuarios = usuarios; this.mensagens = mensagens; }
 
     @GetMapping("/login") public String login() { return jaAutenticado() ? "redirect:/" : "login"; }
     @GetMapping("/cadastro") public String cadastro() { return jaAutenticado() ? "redirect:/" : "cadastro"; }
@@ -30,7 +32,7 @@ public class AuthController {
     @PostMapping("/cadastro") public String criarConta(@RequestParam String nome, @RequestParam String email, @RequestParam String senha, @RequestParam String confirmarSenha, Model model, HttpServletRequest request, HttpServletResponse response) {
         Usuario usuario;
         try { usuario = usuarios.cadastrar(nome, email, senha, confirmarSenha); }
-        catch (IllegalArgumentException ex) { model.addAttribute("erro", ex.getMessage()); return "cadastro"; }
+        catch (IllegalArgumentException ex) { model.addAttribute("erro", mensagens.de(ex)); return "cadastro"; }
         autenticar(usuario, request, response);
         return "redirect:/";
     }

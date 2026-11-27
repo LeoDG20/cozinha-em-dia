@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
+import br.com.cozinhaemdia.config.Mensagens;
 import br.com.cozinhaemdia.model.Compartilhamento;
 import br.com.cozinhaemdia.model.EtapaReceita;
 import br.com.cozinhaemdia.model.Receita;
@@ -59,12 +60,14 @@ public class ReceitaController {
     private final CopiaReceitaService copias;
     private final AmizadeService amizades;
     private final ComentarioService comentarios;
+    private final Mensagens mensagens;
 
     @Autowired
     public ReceitaController(ReceitaService receitaService, RegistroReceitaService registro, DisponibilidadeService disponibilidade,
                              CompartilhamentoService compartilhamentos, CorretorIngredientes corretor, UsuarioService usuarios,
-                             CopiaReceitaService copias, AmizadeService amizades, ComentarioService comentarios) {
-        this.amizades = amizades; this.comentarios = comentarios;
+                             CopiaReceitaService copias, AmizadeService amizades, ComentarioService comentarios,
+                             Mensagens mensagens) {
+        this.amizades = amizades; this.comentarios = comentarios; this.mensagens = mensagens;
         this.receitaService = receitaService; this.registro = registro; this.disponibilidade = disponibilidade;
         this.compartilhamentos = compartilhamentos; this.corretor = corretor; this.usuarios = usuarios; this.copias = copias;
     }
@@ -108,10 +111,10 @@ public class ReceitaController {
         List<LinhaEtapa> etapasForm = linhasEtapas(request);
         try {
             Resultado r = registro.criar(usuario(auth), dados(form, ingredientes), midia(request, form), etapas(request));
-            avisar(flash, "Receita cadastrada com sucesso.", r);
+            avisar(flash, mensagens.get("msg.receita.cadastrada"), r);
             return "redirect:/receitas/" + r.receita().getId();
         } catch (IllegalArgumentException ex) {
-            model.addAttribute("erro", ex.getMessage());
+            model.addAttribute("erro", mensagens.de(ex));
             prepararFormulario(model, null, form, ingredientes, etapasForm);
             return "receita-form";
         }
@@ -120,7 +123,7 @@ public class ReceitaController {
     @GetMapping("/receitas/{id}")
     public String detalhe(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, Model model, RedirectAttributes flash) {
         Receita receita = compartilhamentos.visivelPara(id, auth.getId()).orElse(null);
-        if (receita == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
+        if (receita == null) { flash.addFlashAttribute("erro", mensagens.get("erro.receita.nao-encontrada")); return "redirect:/receitas"; }
         boolean dono = receita.getUsuario().getId().equals(auth.getId());
         model.addAttribute("receita", receita);
         model.addAttribute("itens", receitaService.ingredientesDaReceita(id));
@@ -147,7 +150,7 @@ public class ReceitaController {
     @GetMapping("/receitas/{id}/editar")
     public String editar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, Model model, RedirectAttributes flash) {
         Receita receita = receitaService.buscar(id, auth.getId()).orElse(null);
-        if (receita == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
+        if (receita == null) { flash.addFlashAttribute("erro", mensagens.get("erro.receita.nao-encontrada")); return "redirect:/receitas"; }
         List<LinhaIngrediente> ingredientes = new ArrayList<>();
         for (ReceitaIngrediente item : receitaService.ingredientesDaReceita(id))
             ingredientes.add(new LinhaIngrediente(item.getIngrediente().getNome(), ReceitaService.formatar(item.getQuantidade()), item.getUnidade()));
@@ -167,16 +170,16 @@ public class ReceitaController {
                             @RequestParam(required = false) String imagemUrl, @RequestParam(required = false) String videoUrl,
                             Model model, RedirectAttributes flash) {
         Receita receita = receitaService.buscar(id, auth.getId()).orElse(null);
-        if (receita == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
+        if (receita == null) { flash.addFlashAttribute("erro", mensagens.get("erro.receita.nao-encontrada")); return "redirect:/receitas"; }
         Formulario form = new Formulario(nome, descricao, inteiro(tempoPreparoMin), inteiro(porcoes), imagemUrl, videoUrl);
         List<LinhaIngrediente> ingredientes = linhasIngredientes(request);
         List<LinhaEtapa> etapasForm = linhasEtapas(request);
         try {
             Resultado r = registro.atualizar(receita, usuario(auth), dados(form, ingredientes), midia(request, form), etapas(request));
-            avisar(flash, "Receita atualizada.", r);
+            avisar(flash, mensagens.get("msg.receita.atualizada"), r);
             return "redirect:/receitas/" + id;
         } catch (IllegalArgumentException ex) {
-            model.addAttribute("erro", ex.getMessage());
+            model.addAttribute("erro", mensagens.de(ex));
             prepararFormulario(model, receita, form, ingredientes, etapasForm);
             return "receita-form";
         }
@@ -185,7 +188,7 @@ public class ReceitaController {
     @PostMapping("/receitas/{id}/excluir")
     public String excluir(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, RedirectAttributes flash) {
         Receita receita = receitaService.buscar(id, auth.getId()).orElse(null);
-        if (receita != null) { registro.excluir(receita); flash.addFlashAttribute("sucesso", "Receita excluída."); }
+        if (receita != null) { registro.excluir(receita); flash.addFlashAttribute("sucesso", mensagens.get("msg.receita.excluida")); }
         return "redirect:/receitas";
     }
 
@@ -194,17 +197,17 @@ public class ReceitaController {
                                @RequestParam(required = false) String email, @RequestParam(required = false) List<Long> amigo,
                                @RequestParam(required = false) String mensagem, RedirectAttributes flash) {
         Receita receita = receitaService.buscar(id, auth.getId()).orElse(null);
-        if (receita == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
+        if (receita == null) { flash.addFlashAttribute("erro", mensagens.get("erro.receita.nao-encontrada")); return "redirect:/receitas"; }
         List<String> emails = new ArrayList<>();
         if (amigo != null) for (Long amigoId : amigo) usuarios.encontrar(amigoId).ifPresent(u -> emails.add(u.getEmail()));
         if (email != null && !email.isBlank()) emails.add(email);
-        if (emails.isEmpty()) { flash.addFlashAttribute("erro", "Escolha ao menos um amigo para compartilhar."); return "redirect:/receitas/" + id; }
+        if (emails.isEmpty()) { flash.addFlashAttribute("erro", mensagens.get("erro.compartilhar.nenhum-amigo")); return "redirect:/receitas/" + id; }
         List<String> nomes = new ArrayList<>(), erros = new ArrayList<>();
         for (String destino : emails) {
             try { nomes.add(compartilhamentos.compartilhar(receita, usuario(auth), destino, mensagem).getDestino().getNome()); }
-            catch (IllegalArgumentException ex) { erros.add(ex.getMessage()); }
+            catch (IllegalArgumentException ex) { erros.add(mensagens.de(ex)); }
         }
-        if (!nomes.isEmpty()) flash.addFlashAttribute("sucesso", "Receita compartilhada com " + String.join(", ", nomes) + ".");
+        if (!nomes.isEmpty()) flash.addFlashAttribute("sucesso", mensagens.get("msg.compartilhar.ok", String.join(", ", nomes)));
         if (!erros.isEmpty()) flash.addFlashAttribute("erro", String.join(" ", erros));
         return "redirect:/receitas/" + id;
     }
@@ -213,10 +216,10 @@ public class ReceitaController {
     public String salvarCopia(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, RedirectAttributes flash) {
         try {
             Receita copia = compartilhamentos.salvarCopia(id, usuario(auth));
-            flash.addFlashAttribute("sucesso", "A receita foi salva na sua conta. Agora você pode editá-la.");
+            flash.addFlashAttribute("sucesso", mensagens.get("msg.copia.salva"));
             return "redirect:/receitas/" + copia.getId();
         } catch (IllegalArgumentException ex) {
-            flash.addFlashAttribute("erro", ex.getMessage());
+            flash.addFlashAttribute("erro", mensagens.de(ex));
             return "redirect:/compartilhadas";
         }
     }
@@ -226,13 +229,13 @@ public class ReceitaController {
     public String adaptar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth,
                           @RequestParam(required = false) String nome, RedirectAttributes flash) {
         Receita origem = compartilhamentos.visivelPara(id, auth.getId()).orElse(null);
-        if (origem == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
+        if (origem == null) { flash.addFlashAttribute("erro", mensagens.get("erro.receita.nao-encontrada")); return "redirect:/receitas"; }
         try {
             Receita versao = copias.adaptar(origem, usuario(auth), nome);
-            flash.addFlashAttribute("sucesso", "Versão criada a partir de \"" + origem.getNome() + "\". Altere o que desejar e salve.");
+            flash.addFlashAttribute("sucesso", mensagens.get("msg.copia.adaptada", origem.getNome()));
             return "redirect:/receitas/" + versao.getId() + "/editar";
         } catch (IllegalArgumentException ex) {
-            flash.addFlashAttribute("erro", ex.getMessage());
+            flash.addFlashAttribute("erro", mensagens.de(ex));
             return "redirect:/receitas/" + id;
         }
     }

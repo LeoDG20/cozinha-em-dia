@@ -7,6 +7,17 @@
   <title th:text="${titulo} + ' · Cozinha em Dia'">Cozinha em Dia</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8462a'/%3E%3Cpath d='M7 15h18v2a8 8 0 01-8 8h-2a8 8 0 01-8-8z' fill='%23fffdf9'/%3E%3Cpath d='M12 11c0-2 2-2 2-4M17 11c0-2 2-2 2-4' fill='none' stroke='%23fffdf9' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" th:href="@{/css/app.css}">
+  <script th:inline="javascript">
+    window.TEXTOS = {
+      arquivoGrande: /*[[#{js.arquivo-grande}]]*/ 'O arquivo {0} tem mais de {1} MB e não poderá ser enviado.',
+      usando: /*[[#{js.usando}]]*/ 'Usando {0}.',
+      corrigido: /*[[#{js.corrigido}]]*/ 'Corrigido de {0} para {1}.',
+      manter: /*[[#{js.manter}]]*/ 'Manter {0}',
+      ouEntao: /*[[#{js.ou-entao}]]*/ 'Ou então:',
+      quisDizer: /*[[#{js.quis-dizer}]]*/ 'Você quis dizer:',
+      copiada: /*[[#{js.copiada}]]*/ 'Lista copiada'
+    };
+  </script>
   <script th:src="@{/js/app.js}" defer></script>
 </th:block>
 </body>

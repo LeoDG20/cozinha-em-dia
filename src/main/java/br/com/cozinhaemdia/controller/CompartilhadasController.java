@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
+import br.com.cozinhaemdia.config.Mensagens;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.CompartilhamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class CompartilhadasController {
     private final CompartilhamentoService compartilhamentos;
+    private final Mensagens mensagens;
 
     @Autowired
-    public CompartilhadasController(CompartilhamentoService compartilhamentos) { this.compartilhamentos = compartilhamentos; }
+    public CompartilhadasController(CompartilhamentoService compartilhamentos, Mensagens mensagens) { this.compartilhamentos = compartilhamentos; this.mensagens = mensagens; }
 
     @GetMapping("/compartilhadas")
     public String listar(@AuthenticationPrincipal UsuarioAutenticado auth, Model model) {
@@ -30,8 +32,8 @@ public class CompartilhadasController {
     @PostMapping("/compartilhamentos/{id}/remover")
     public String remover(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth,
                           @RequestParam(required = false) Long receita, RedirectAttributes flash) {
-        if (compartilhamentos.remover(id, auth.getId())) flash.addFlashAttribute("sucesso", "Compartilhamento removido.");
-        else flash.addFlashAttribute("erro", "Compartilhamento não encontrado.");
+        if (compartilhamentos.remover(id, auth.getId())) flash.addFlashAttribute("sucesso", mensagens.get("msg.compartilhamento.removido"));
+        else flash.addFlashAttribute("erro", mensagens.get("erro.compartilhamento.nao-encontrado"));
         return receita != null ? "redirect:/receitas/" + receita : "redirect:/compartilhadas";
     }
 }

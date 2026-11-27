@@ -43,10 +43,10 @@ public class CopiaReceitaService {
     @Transactional
     public Receita adaptar(Receita origem, Usuario usuario, String novoNome) {
         String nome = novoNome == null ? "" : novoNome.trim().replaceAll("\\s+", " ");
-        if (nome.isEmpty()) throw new IllegalArgumentException("Informe um nome para a versão adaptada.");
-        if (nome.length() > LIMITE_NOME) throw new IllegalArgumentException("O nome da receita deve ter no máximo " + LIMITE_NOME + " caracteres.");
+        if (nome.isEmpty()) throw new NegocioException("erro.copia.nome.vazio", "Informe um nome para a versão adaptada.");
+        if (nome.length() > LIMITE_NOME) throw new NegocioException("erro.receita.nome.longo", "O nome da receita deve ter no máximo " + LIMITE_NOME + " caracteres.", LIMITE_NOME);
         if (receitas.existsByUsuarioIdAndNomeIgnoreCase(usuario.getId(), nome))
-            throw new IllegalArgumentException("Você já tem uma receita chamada \"" + nome + "\". Escolha outro nome para a versão adaptada.");
+            throw new NegocioException("erro.copia.nome.repetido", "Você já tem uma receita chamada \"" + nome + "\". Escolha outro nome para a versão adaptada.", nome);
         Receita copia = copiar(origem, usuario, nome);
         copia.setOrigemNome(origem.getNome());
         return receitas.save(copia);

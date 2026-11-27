@@ -34,17 +34,17 @@ public class CompartilhamentoService {
     /** Compartilha a receita com um amigo (identificado pelo e-mail). Só o dono pode compartilhar e só com amigos. */
     @Transactional
     public Compartilhamento compartilhar(Receita receita, Usuario origem, String email, String mensagem) {
-        if (!receita.getUsuario().getId().equals(origem.getId())) throw new IllegalArgumentException("Você só pode compartilhar as suas próprias receitas.");
-        if (email == null || email.isBlank()) throw new IllegalArgumentException("Informe o e-mail da pessoa que receberá a receita.");
+        if (!receita.getUsuario().getId().equals(origem.getId())) throw new NegocioException("erro.compartilhar.so-proprias", "Você só pode compartilhar as suas próprias receitas.");
+        if (email == null || email.isBlank()) throw new NegocioException("erro.compartilhar.email.vazio", "Informe o e-mail da pessoa que receberá a receita.");
         Usuario destino = usuarios.findByEmailIgnoreCase(email.trim())
-                .orElseThrow(() -> new IllegalArgumentException("Não há usuário cadastrado com esse e-mail. Peça para a pessoa criar uma conta primeiro."));
-        if (destino.getId().equals(origem.getId())) throw new IllegalArgumentException("Você não pode compartilhar uma receita com você mesmo.");
+                .orElseThrow(() -> new NegocioException("erro.usuario.inexistente", "Não há usuário cadastrado com esse e-mail. Peça para a pessoa criar uma conta primeiro."));
+        if (destino.getId().equals(origem.getId())) throw new NegocioException("erro.compartilhar.si-mesmo", "Você não pode compartilhar uma receita com você mesmo.");
         if (!amizades.saoAmigos(origem.getId(), destino.getId()))
-            throw new IllegalArgumentException(destino.getNome() + " ainda não é seu amigo. Envie um pedido na página Amigos para poder compartilhar receitas.");
+            throw new NegocioException("erro.compartilhar.nao-amigo", destino.getNome() + " ainda não é seu amigo. Envie um pedido na página Amigos para poder compartilhar receitas.", destino.getNome());
         if (compartilhamentos.existsByReceitaIdAndDestinoId(receita.getId(), destino.getId()))
-            throw new IllegalArgumentException("Esta receita já foi compartilhada com " + destino.getNome() + ".");
+            throw new NegocioException("erro.compartilhar.ja", "Esta receita já foi compartilhada com " + destino.getNome() + ".", destino.getNome());
         String nota = mensagem == null ? "" : mensagem.trim();
-        if (nota.length() > 200) throw new IllegalArgumentException("A mensagem deve ter no máximo 200 caracteres.");
+        if (nota.length() > 200) throw new NegocioException("erro.compartilhar.mensagem.longa", "A mensagem deve ter no máximo 200 caracteres.");
         return compartilhamentos.save(new Compartilhamento(receita, destino, nota.isEmpty() ? null : nota));
     }
 
@@ -97,8 +97,8 @@ public class CompartilhamentoService {
     @Transactional
     public Receita salvarCopia(Long receitaId, Usuario destinatario) {
         Compartilhamento c = compartilhamentos.findByReceitaIdAndDestinoId(receitaId, destinatario.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Receita não encontrada entre as compartilhadas com você."));
-        if (c.isCopiada()) throw new IllegalArgumentException("Você já salvou esta receita na sua conta.");
+                .orElseThrow(() -> new NegocioException("erro.compartilhar.nao-recebida", "Receita não encontrada entre as compartilhadas com você."));
+        if (c.isCopiada()) throw new NegocioException("erro.compartilhar.ja-salva", "Você já salvou esta receita na sua conta.");
         Receita salva = copias.copiar(c.getReceita(), destinatario);
 
         c.setCopiada(true);

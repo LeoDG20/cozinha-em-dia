@@ -45,12 +45,12 @@ public class UsuarioService {
     @Transactional
     public Usuario cadastrar(String nome, String email, String senha, String confirmarSenha) {
         if (nome == null || nome.isBlank() || email == null || email.isBlank() || senha == null || senha.length() < TAMANHO_MINIMO_SENHA)
-            throw new IllegalArgumentException("Preencha os campos e use uma senha com pelo menos 6 caracteres.");
+            throw new NegocioException("erro.cadastro.campos", "Preencha os campos e use uma senha com pelo menos 6 caracteres.");
         if (nome.trim().length() > TAMANHO_MAXIMO_NOME)
-            throw new IllegalArgumentException("O nome deve ter no máximo " + TAMANHO_MAXIMO_NOME + " caracteres.");
-        if (!emailValido(email.trim())) throw new IllegalArgumentException("Informe um e-mail válido, por exemplo voce@email.com.");
-        if (!senha.equals(confirmarSenha)) throw new IllegalArgumentException("As senhas não coincidem.");
-        if (usuarios.existsByEmailIgnoreCase(email.trim())) throw new IllegalArgumentException("Já existe uma conta com esse e-mail.");
+            throw new NegocioException("erro.cadastro.nome.longo", "O nome deve ter no máximo " + TAMANHO_MAXIMO_NOME + " caracteres.", TAMANHO_MAXIMO_NOME);
+        if (!emailValido(email.trim())) throw new NegocioException("erro.cadastro.email.invalido", "Informe um e-mail válido, por exemplo voce@email.com.");
+        if (!senha.equals(confirmarSenha)) throw new NegocioException("erro.cadastro.senhas", "As senhas não coincidem.");
+        if (usuarios.existsByEmailIgnoreCase(email.trim())) throw new NegocioException("erro.cadastro.email.existe", "Já existe uma conta com esse e-mail.");
         return usuarios.save(new Usuario(nome.trim(), email.trim().toLowerCase(), encoder.encode(senha)));
     }
 

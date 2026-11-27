@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
+import br.com.cozinhaemdia.config.Mensagens;
 import br.com.cozinhaemdia.model.Amizade;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.AmizadeService;
@@ -19,9 +20,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AmigosController {
     private final AmizadeService amizades;
     private final UsuarioService usuarios;
+    private final Mensagens mensagens;
 
     @Autowired
-    public AmigosController(AmizadeService amizades, UsuarioService usuarios) { this.amizades = amizades; this.usuarios = usuarios; }
+    public AmigosController(AmizadeService amizades, UsuarioService usuarios, Mensagens mensagens) {
+        this.amizades = amizades; this.usuarios = usuarios; this.mensagens = mensagens;
+    }
 
     @GetMapping("/amigos")
     public String listar(@AuthenticationPrincipal UsuarioAutenticado auth, Model model) {
@@ -36,10 +40,10 @@ public class AmigosController {
         try {
             Amizade a = amizades.convidar(usuarios.buscar(auth.getId()), email);
             flash.addFlashAttribute("sucesso", a.isAceita()
-                    ? "Vocês agora são amigos: " + a.outro(auth.getId()).getNome() + " já tinha enviado um pedido."
-                    : "Pedido enviado para " + a.getDestinatario().getNome() + ". A amizade começa quando a pessoa aceitar.");
+                    ? mensagens.get("msg.amigos.pedido-cruzado", a.outro(auth.getId()).getNome())
+                    : mensagens.get("msg.amigos.pedido-enviado", a.getDestinatario().getNome()));
         } catch (IllegalArgumentException ex) {
-            flash.addFlashAttribute("erro", ex.getMessage());
+            flash.addFlashAttribute("erro", mensagens.de(ex));
         }
         return "redirect:/amigos";
     }
@@ -48,22 +52,22 @@ public class AmigosController {
     public String aceitar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, RedirectAttributes flash) {
         try {
             Amizade a = amizades.aceitar(id, auth.getId());
-            flash.addFlashAttribute("sucesso", "Agora você e " + a.getSolicitante().getNome() + " são amigos.");
-        } catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", ex.getMessage()); }
+            flash.addFlashAttribute("sucesso", mensagens.get("msg.amigos.aceito", a.getSolicitante().getNome()));
+        } catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", mensagens.de(ex)); }
         return "redirect:/amigos";
     }
 
     @PostMapping("/amigos/{id}/recusar")
     public String recusar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, RedirectAttributes flash) {
-        try { amizades.recusarOuCancelar(id, auth.getId()); flash.addFlashAttribute("sucesso", "Pedido removido."); }
-        catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", ex.getMessage()); }
+        try { amizades.recusarOuCancelar(id, auth.getId()); flash.addFlashAttribute("sucesso", mensagens.get("msg.amigos.pedido-removido")); }
+        catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", mensagens.de(ex)); }
         return "redirect:/amigos";
     }
 
     @PostMapping("/amigos/{id}/desfazer")
     public String desfazer(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado auth, RedirectAttributes flash) {
-        try { amizades.desfazer(id, auth.getId()); flash.addFlashAttribute("sucesso", "Amizade desfeita."); }
-        catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", ex.getMessage()); }
+        try { amizades.desfazer(id, auth.getId()); flash.addFlashAttribute("sucesso", mensagens.get("msg.amigos.desfeita")); }
+        catch (IllegalArgumentException ex) { flash.addFlashAttribute("erro", mensagens.de(ex)); }
         return "redirect:/amigos";
     }
 }

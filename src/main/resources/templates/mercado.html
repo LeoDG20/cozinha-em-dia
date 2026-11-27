@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head><th:block th:replace="~{fragments/head :: head('Lista de mercado')}"></th:block></head>
+<html th:lang="${#locale.toLanguageTag()}" lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head(#{mercado.titulo})}"></th:block></head>
 <body>
 <th:block th:replace="~{fragments/header :: header}"></th:block>
 <main class="page">
   <div class="page-head">
     <div>
-      <h1>Lista de mercado</h1>
-      <p class="muted">Escolha as receitas e veja só o que falta comprar.</p>
+      <h1 th:text="#{mercado.titulo}">Lista de mercado</h1>
+      <p class="muted" th:text="#{mercado.sub}">Escolha as receitas e veja só o que falta comprar.</p>
     </div>
   </div>
 
@@ -16,41 +16,41 @@
 
   <div class="despensa-layout mercado-layout">
     <aside class="painel escolha-receitas no-print">
-      <div class="painel-cab"><h2>Receitas</h2><button class="link-botao" type="button" data-marcar-todos="#escolha-receitas">Marcar todas</button></div>
+      <div class="painel-cab"><h2 th:text="#{nav.receitas}">Receitas</h2><button class="link-botao" type="button" data-marcar-todos="#escolha-receitas" th:text="#{mercado.marcar-todas}">Marcar todas</button></div>
       <form id="escolha-receitas" th:action="@{/mercado}" method="get" data-auto-enviar>
         <input type="hidden" name="f" value="1">
-        <p class="muted" th:if="${#lists.isEmpty(analises)}">Você ainda não tem receitas cadastradas.</p>
+        <p class="muted" th:if="${#lists.isEmpty(analises)}" th:text="#{mercado.sem-receitas}">Você ainda não tem receitas cadastradas.</p>
         <label class="opcao" th:each="a : ${analises}">
           <input type="checkbox" name="receitas" th:value="${a.receita.id}" th:checked="${escolhidas.contains(a.receita.id)}">
-          <span><span th:text="${a.receita.nome}">Receita</span><small th:class="${'situacao-texto ' + a.status.classe}" th:text="${a.status.rotulo}">Pode preparar</small></span>
+          <span><span th:text="${a.receita.nome}">Receita</span><small th:class="${'situacao-texto ' + a.status.classe}" th:text="${#messages.msg('status.' + a.status.classe)}">Pode preparar</small></span>
         </label>
-        <noscript><button class="btn btn-secondary btn-sm" type="submit">Atualizar lista</button></noscript>
+        <noscript><button class="btn btn-secondary btn-sm" type="submit" th:text="#{mercado.atualizar}">Atualizar lista</button></noscript>
       </form>
     </aside>
 
     <section class="painel lista-mercado">
-      <div class="painel-cab"><h2>O que comprar</h2><span class="contagem" th:if="${!#lists.isEmpty(compras)}" th:text="${compras.size() + (compras.size() == 1 ? ' item' : ' itens')}">3 itens</span></div>
+      <div class="painel-cab"><h2 th:text="#{mercado.comprar-titulo}">O que comprar</h2><span class="contagem" th:if="${!#lists.isEmpty(compras)}" th:text="#{mercado.itens(${compras.size()})}">3 itens</span></div>
 
-      <p class="muted" th:if="${#lists.isEmpty(escolhidas)}">Marque ao menos uma receita ao lado.</p>
-      <p class="muted" th:if="${!#lists.isEmpty(escolhidas) && #lists.isEmpty(compras)}">Nada a comprar: a despensa cobre as receitas escolhidas.</p>
+      <p class="muted" th:if="${#lists.isEmpty(escolhidas)}" th:text="#{mercado.marque}">Marque ao menos uma receita ao lado.</p>
+      <p class="muted" th:if="${!#lists.isEmpty(escolhidas) && #lists.isEmpty(compras)}" th:text="#{mercado.nada}">Nada a comprar: a despensa cobre as receitas escolhidas.</p>
 
       <form th:action="@{/mercado/comprar}" method="post" th:if="${!#lists.isEmpty(compras)}">
         <input type="hidden" name="receitas" th:each="id : ${escolhidas}" th:value="${id}">
         <ul id="lista-compras" class="itens-mercado">
-          <li th:each="c : ${compras}" th:attr="data-linha-texto=${c.linhaTexto()}">
+          <li th:each="c : ${compras}" th:with="qtd=${T(br.com.cozinhaemdia.service.ReceitaService).formatar(c.quantidade) + ' ' + @mensagens.unidade(c.unidade)}" th:attr="data-linha-texto=#{mercado.linha(${qtd},${c.nome})}">
             <label>
               <input type="checkbox" name="item" th:value="${c.valorFormulario()}">
-              <span class="nome-compra"><span th:text="${c.nome}">Ovo</span><small th:text="${'Para ' + #strings.listJoin(c.receitas, ', ')}">Omelete</small></span>
-              <span class="qtd" th:text="${c.quantidadeTexto()}">3 unidade</span>
+              <span class="nome-compra"><span th:text="${c.nome}">Ovo</span><small th:text="#{mercado.para(${#strings.listJoin(c.receitas, ', ')})}">Omelete</small></span>
+              <span class="qtd" th:text="${qtd}">3 unidade</span>
             </label>
           </li>
         </ul>
         <div class="compras-acoes no-print">
-          <button class="btn btn-primary" type="submit">Comprei: adicionar marcados à despensa</button>
-          <button class="btn btn-secondary" type="button" data-copiar="#lista-compras">Copiar lista</button>
-          <button class="btn btn-secondary" type="button" data-imprimir>Imprimir</button>
+          <button class="btn btn-primary" type="submit" th:text="#{mercado.comprei}">Comprei: adicionar marcados à despensa</button>
+          <button class="btn btn-secondary" type="button" data-copiar="#lista-compras" th:text="#{mercado.copiar}">Copiar lista</button>
+          <button class="btn btn-secondary" type="button" data-imprimir th:text="#{mercado.imprimir}">Imprimir</button>
         </div>
-        <p class="muted" style="margin-top:12px;font-size:13px">Os itens marcados são somados à despensa.</p>
+        <p class="muted" style="margin-top:12px;font-size:13px" th:text="#{mercado.nota}">Os itens marcados são somados à despensa.</p>
       </form>
     </section>
   </div>

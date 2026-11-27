@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head><th:block th:replace="~{fragments/head :: head('Compartilhadas comigo')}"></th:block></head>
+<html th:lang="${#locale.toLanguageTag()}" lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head(#{compartilhadas.titulo})}"></th:block></head>
 <body>
 <th:block th:replace="~{fragments/header :: header}"></th:block>
 <main class="page estreita">
   <div class="page-head">
     <div>
-      <h1>Amigos</h1>
-      <p class="muted">Receitas que seus amigos enviaram.</p>
+      <h1 th:text="#{nav.amigos}">Amigos</h1>
+      <p class="muted" th:text="#{compartilhadas.sub}">Receitas que seus amigos enviaram.</p>
     </div>
   </div>
   <th:block th:replace="~{fragments/abas :: amigos('recebidas')}"></th:block>
@@ -20,20 +20,20 @@
     </a>
     <div>
       <h3><a th:href="@{/receitas/{id}(id=${c.receita.id})}" th:text="${c.receita.nome}">Receita</a></h3>
-      <p class="de">De <b th:text="${c.receita.usuario.nome}">Nome</b> em <span th:text="${#temporals.format(c.criadoEm, 'dd/MM/yyyy')}">01/01/2025</span> <span class="etiqueta" th:if="${!c.copiada}">nova</span><span class="etiqueta neutra" th:if="${c.copiada}">salva na sua conta</span></p>
+      <p class="de"><span th:text="#{compartilhadas.de}">De</span> <b th:text="${c.receita.usuario.nome}">Nome</b> <span th:text="#{compartilhadas.em}">em</span> <span th:text="${#temporals.format(c.criadoEm, #messages.msg('formato.data'))}">01/01/2025</span> <span class="etiqueta" th:if="${!c.copiada}" th:text="#{compartilhadas.nova}">nova</span><span class="etiqueta neutra" th:if="${c.copiada}" th:text="#{compartilhadas.salva}">salva na sua conta</span></p>
       <blockquote th:if="${c.mensagem != null}" th:text="${c.mensagem}">Mensagem</blockquote>
     </div>
     <div class="acoes">
-      <a class="btn btn-secondary btn-sm" th:href="@{/receitas/{id}(id=${c.receita.id})}">Ver receita</a>
-      <form th:if="${!c.copiada}" th:action="@{/receitas/{id}/salvar-copia(id=${c.receita.id})}" method="post"><button class="btn btn-primary btn-sm btn-block" type="submit">Salvar na minha conta</button></form>
-      <form th:action="@{/compartilhamentos/{id}/remover(id=${c.id})}" method="post" data-confirmar="Remover esta receita da sua lista de compartilhadas?"><button class="link-botao" type="submit">Remover da lista</button></form>
+      <a class="btn btn-secondary btn-sm" th:href="@{/receitas/{id}(id=${c.receita.id})}" th:text="#{compartilhadas.ver}">Ver receita</a>
+      <form th:if="${!c.copiada}" th:action="@{/receitas/{id}/salvar-copia(id=${c.receita.id})}" method="post"><button class="btn btn-primary btn-sm btn-block" type="submit" th:text="#{compartilhadas.salvar}">Salvar na minha conta</button></form>
+      <form th:action="@{/compartilhamentos/{id}/remover(id=${c.id})}" method="post" th:attr="data-confirmar=#{compartilhadas.remover-confirmar}"><button class="link-botao" type="submit" th:text="#{compartilhadas.remover}">Remover da lista</button></form>
     </div>
   </article>
 
   <div class="vazio" th:if="${#lists.isEmpty(recebidas)}">
-    <h2>Nenhuma receita compartilhada</h2>
-    <p>Quando um amigo compartilhar uma receita com você, ela aparece aqui. Para enviar uma das suas, abra a receita e use “Compartilhar”.</p>
-    <a class="btn btn-secondary" th:href="@{/amigos}">Ver meus amigos</a>
+    <h2 th:text="#{compartilhadas.vazio.titulo}">Nenhuma receita compartilhada</h2>
+    <p th:text="#{compartilhadas.vazio.texto}">Quando um amigo compartilhar uma receita com você, ela aparece aqui.</p>
+    <a class="btn btn-secondary" th:href="@{/amigos}" th:text="#{compartilhadas.vazio.link}">Ver meus amigos</a>
   </div>
 </main>
 </body>

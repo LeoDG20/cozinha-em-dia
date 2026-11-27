@@ -1,0 +1,11 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="seletor">
+  <span class="idiomas" role="group" th:attr="aria-label=#{idioma.rotulo}">
+    <a th:href="@{${caminho}(lang='pt-BR')}" lang="pt-BR" hreflang="pt-BR" th:classappend="${#locale.language == 'pt'} ? 'ativo'" th:attr="aria-current=${#locale.language == 'pt'} ? 'true'" th:title="#{idioma.portugues}">PT</a>
+    <a th:href="@{${caminho}(lang='en')}" lang="en" hreflang="en" th:classappend="${#locale.language == 'en'} ? 'ativo'" th:attr="aria-current=${#locale.language == 'en'} ? 'true'" th:title="#{idioma.ingles}">EN</a>
+  </span>
+</th:block>
+</body>
+</html>

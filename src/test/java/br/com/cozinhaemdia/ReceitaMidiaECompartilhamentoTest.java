@@ -120,8 +120,8 @@ class ReceitaMidiaECompartilhamentoTest {
         MvcResult r = mvc.perform(formulario("/receitas", "Bolo com mídia").with(como(DONO)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("sucesso", "Receita cadastrada com sucesso.")).andReturn();
-        @SuppressWarnings("unchecked") List<String> avisos = (List<String>) r.getFlashMap().get("avisos");
-        assertTrue(avisos.stream().anyMatch(a -> a.contains("farna") && a.contains("Farinha")), "esperava aviso de correção de farna");
+        @SuppressWarnings("unchecked") List<br.com.cozinhaemdia.service.CorretorIngredientes.Aviso> avisos = (List<br.com.cozinhaemdia.service.CorretorIngredientes.Aviso>) r.getFlashMap().get("avisos");
+        assertTrue(avisos.stream().anyMatch(a -> a.original().contains("farna") && a.corrigido().contains("Farinha")), "esperava aviso de correção de farna");
 
         Long idCriado = receitas.findAllByUsuarioIdOrderByNomeAsc(usuario(DONO).getId()).stream().filter(x -> x.getNome().equals("Bolo com mídia")).findFirst().orElseThrow().getId();
         Receita receita = carregar(idCriado);

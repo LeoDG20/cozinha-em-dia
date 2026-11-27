@@ -3,6 +3,7 @@ package br.com.cozinhaemdia.service;
 import br.com.cozinhaemdia.model.*;
 import br.com.cozinhaemdia.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -66,11 +67,11 @@ public class ReceitaService {
         r.setModoPreparo(modo == null ? "" : modo.trim()); r.setTempoPreparoMin(tempo); r.setPorcoes(porcoes);
     }
     private void validarReceita(Receita r, List<LinhaIngrediente> linhas) {
-        if (r.getNome().isBlank()) throw new IllegalArgumentException("Informe o nome da receita.");
-        if (r.getModoPreparo().isBlank()) throw new IllegalArgumentException("Informe o modo de preparo.");
-        if (linhas.isEmpty()) throw new IllegalArgumentException("Adicione pelo menos um ingrediente.");
+        if (r.getNome().isBlank()) throw new NegocioException("erro.receita.nome.vazio", "Informe o nome da receita.");
+        if (r.getModoPreparo().isBlank()) throw new NegocioException("erro.receita.modo.vazio", "Informe o modo de preparo.");
+        if (linhas.isEmpty()) throw new NegocioException("erro.receita.sem-ingredientes", "Adicione pelo menos um ingrediente.");
         Set<String> nomes = new HashSet<>();
-        for (LinhaIngrediente l : linhas) if (!nomes.add(l.nome().toLowerCase(Locale.ROOT))) throw new IllegalArgumentException("O ingrediente '"+l.nome()+"' aparece mais de uma vez. Agrupe as quantidades em uma linha.");
+        for (LinhaIngrediente l : linhas) if (!nomes.add(l.nome().toLowerCase(Locale.ROOT))) throw new NegocioException("erro.receita.ingrediente.repetido", "O ingrediente '"+l.nome()+"' aparece mais de uma vez. Agrupe as quantidades em uma linha.", l.nome());
     }
     private List<LinhaIngrediente> interpretarIngredientes(String texto) {
         List<LinhaIngrediente> linhas = new ArrayList<>();
@@ -80,13 +81,13 @@ public class ReceitaService {
             numero++;
             if (linha.isBlank()) continue;
             String[] partes = linha.split("\\|", -1);
-            if (partes.length != 3) throw new IllegalArgumentException("Linha " + numero + ": use Nome do ingrediente | quantidade | unidade.");
+            if (partes.length != 3) throw new NegocioException("erro.receita.linha.formato", "Linha " + numero + ": use Nome do ingrediente | quantidade | unidade.", numero);
             String nome = partes[0].trim(), unidade = partes[2].trim().toLowerCase(Locale.ROOT);
-            if (nome.isBlank() || unidade.isBlank()) throw new IllegalArgumentException("Linha " + numero + ": preencha nome, quantidade e unidade.");
+            if (nome.isBlank() || unidade.isBlank()) throw new NegocioException("erro.receita.linha.vazia", "Linha " + numero + ": preencha nome, quantidade e unidade.", numero);
             double qtd;
             try { qtd = Double.parseDouble(partes[1].trim().replace(',', '.')); }
-            catch (NumberFormatException e) { throw new IllegalArgumentException("Linha " + numero + ": quantidade inválida."); }
-            if (qtd <= 0) throw new IllegalArgumentException("Linha " + numero + ": a quantidade deve ser maior que zero.");
+            catch (NumberFormatException e) { throw new NegocioException("erro.receita.linha.qtd-invalida", "Linha " + numero + ": quantidade inválida.", numero); }
+            if (qtd <= 0) throw new NegocioException("erro.receita.linha.qtd-positiva", "Linha " + numero + ": a quantidade deve ser maior que zero.", numero);
             linhas.add(new LinhaIngrediente(nome, qtd, unidade));
         }
         return linhas;
@@ -102,7 +103,11 @@ public class ReceitaService {
     public static String formatar(Double valor) {
         if (valor == null) return "0";
         if (Math.abs(valor - Math.rint(valor)) < 0.00001) return String.valueOf((long)Math.rint(valor));
-        return String.format(Locale.forLanguageTag("pt-BR"), "%.2f", valor).replaceAll("0+$", "").replaceAll(",$", "");
+        return String.format(idiomaAtual(), "%.2f", valor).replaceAll("0+$", "").replaceAll("[,.]$", "");
+    }
+    /** Idioma da requisição em andamento; fora de uma requisição, português do Brasil. */
+    private static Locale idiomaAtual() {
+        return LocaleContextHolder.getLocaleContext() == null ? Locale.forLanguageTag("pt-BR") : LocaleContextHolder.getLocale();
     }
     private record LinhaIngrediente(String nome, double quantidade, String unidade) {}
 }

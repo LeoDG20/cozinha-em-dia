@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head><th:block th:replace="~{fragments/head :: head('Despensa')}"></th:block></head>
+<html th:lang="${#locale.toLanguageTag()}" lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><th:block th:replace="~{fragments/head :: head(#{nav.despensa})}"></th:block></head>
 <body>
 <th:block th:replace="~{fragments/header :: header}"></th:block>
 <main class="page">
   <div class="page-head">
     <div>
-      <h1>Despensa</h1>
+      <h1 th:text="#{nav.despensa}">Despensa</h1>
     </div>
     <div class="acoes">
-      <a class="btn btn-secondary" th:href="@{/mercado}">Lista de mercado</a>
-      <a class="btn btn-secondary" th:href="@{/medidas}">Conversor de medidas</a>
+      <a class="btn btn-secondary" th:href="@{/mercado}" th:text="#{mercado.titulo}">Lista de mercado</a>
+      <a class="btn btn-secondary" th:href="@{/medidas}" th:text="#{medidas.cabecalho}">Conversor de medidas</a>
     </div>
   </div>
 
@@ -22,47 +22,47 @@
       <section class="painel adicionar-bloco">
         <form class="adicionar-linha" th:action="@{/despensa}" method="post">
           <div class="campo-nome">
-            <label>Ingrediente<input type="text" name="nome" placeholder="Ex.: arroz" maxlength="100" required list="lista-ingredientes" autocomplete="off" class="js-ingrediente"></label>
+            <label><span th:text="#{despensa.ingrediente}">Ingrediente</span><input type="text" name="nome" th:placeholder="#{despensa.ingrediente-ph}" maxlength="100" required list="lista-ingredientes" autocomplete="off" class="js-ingrediente"></label>
           </div>
-          <label>Quantidade<input type="number" name="quantidade" min="0.01" step="0.01" placeholder="500" required></label>
-          <label>Unidade<select name="unidade" required><option th:each="u : ${unidades}" th:value="${u}" th:text="${u}">g</option></select></label>
-          <button class="btn btn-primary" type="submit">Adicionar</button>
+          <label><span th:text="#{despensa.quantidade}">Quantidade</span><input type="number" name="quantidade" min="0.01" step="0.01" placeholder="500" required></label>
+          <label><span th:text="#{despensa.unidade}">Unidade</span><select name="unidade" required><option th:each="u : ${unidades}" th:value="${u}" th:text="${@mensagens.unidade(u)}">g</option></select></label>
+          <button class="btn btn-primary" type="submit" th:text="#{despensa.adicionar}">Adicionar</button>
         </form>
         <datalist id="lista-ingredientes"><option th:each="n : ${sugestoes}" th:value="${n}"></option></datalist>
-        <p class="muted" style="margin-top:10px;font-size:13px">Quantidades de um item que já existe são somadas. Xícara e colher também valem.</p>
+        <p class="muted" style="margin-top:10px;font-size:13px" th:text="#{despensa.nota}">Quantidades de um item que já existe são somadas. Xícara e colher também valem.</p>
       </section>
 
       <div class="tabela-wrap" th:if="${!#lists.isEmpty(itens)}">
         <div class="tabela-cab">
-          <strong>Ingredientes cadastrados</strong>
-          <div class="busca"><svg class="i"><use href="#i-busca"/></svg><input type="search" placeholder="Filtrar" aria-label="Filtrar ingredientes" data-filtrar="#tabela-despensa tbody tr[data-texto]" data-sem-resultado="sem-resultado"></div>
+          <strong th:text="#{despensa.cadastrados}">Ingredientes cadastrados</strong>
+          <div class="busca"><svg class="i"><use href="#i-busca"/></svg><input type="search" th:placeholder="#{despensa.filtrar}" th:attr="aria-label=#{despensa.filtrar-rotulo}" data-filtrar="#tabela-despensa tbody tr[data-texto]" data-sem-resultado="sem-resultado"></div>
         </div>
         <table class="tabela" id="tabela-despensa">
-          <thead><tr><th>Ingrediente</th><th>Quantidade</th><th>Uso</th><th></th></tr></thead>
+          <thead><tr><th th:text="#{despensa.col-ingrediente}">Ingrediente</th><th th:text="#{despensa.col-quantidade}">Quantidade</th><th th:text="#{despensa.col-uso}">Uso</th><th></th></tr></thead>
           <tbody>
             <tr th:each="item : ${itens}" th:attr="data-texto=${item.ingrediente.nome}">
               <td class="nome-item" th:text="${item.ingrediente.nome}">Arroz</td>
               <td>
                 <form class="edicao-inline" th:action="@{/despensa/editar}" method="post">
                   <input type="hidden" name="itemId" th:value="${item.id}">
-                  <input type="number" name="quantidade" min="0.01" step="0.01" required th:value="${#numbers.formatDecimal(item.quantidade, 1, 'NONE', 2, 'POINT')}" aria-label="Quantidade">
-                  <select name="unidade" aria-label="Unidade"><option th:each="u : ${unidades}" th:value="${u}" th:text="${u}" th:selected="${u == item.unidade}">g</option></select>
-                  <button class="acao-icone" type="submit" title="Salvar alteração" aria-label="Salvar alteração"><svg class="i"><use href="#i-ok"/></svg></button>
+                  <input type="number" name="quantidade" min="0.01" step="0.01" required th:value="${#numbers.formatDecimal(item.quantidade, 1, 'NONE', 2, 'POINT')}" th:attr="aria-label=#{despensa.quantidade}">
+                  <select name="unidade" th:attr="aria-label=#{despensa.unidade}"><option th:each="u : ${unidades}" th:value="${u}" th:text="${@mensagens.unidade(u)}" th:selected="${u == item.unidade}">g</option></select>
+                  <button class="acao-icone" type="submit" th:title="#{despensa.salvar}" th:attr="aria-label=#{despensa.salvar}"><svg class="i"><use href="#i-ok"/></svg></button>
                 </form>
               </td>
-              <td class="uso" th:classappend="${uso.get(item.ingrediente.id) == null ? 'zero' : ''}" th:text="${uso.get(item.ingrediente.id) == null ? 'Sem receitas' : (uso.get(item.ingrediente.id) == 1 ? '1 receita' : uso.get(item.ingrediente.id) + ' receitas')}">2 receitas</td>
+              <td class="uso" th:classappend="${uso.get(item.ingrediente.id) == null ? 'zero' : ''}" th:text="#{despensa.uso(${uso.get(item.ingrediente.id) ?: 0})}">2 receitas</td>
               <td class="acoes-col">
-                <form th:action="@{/despensa/remover}" method="post" data-confirmar="Remover este ingrediente da despensa?"><input type="hidden" name="itemId" th:value="${item.id}"><button class="acao-icone perigo" type="submit" title="Remover" aria-label="Remover"><svg class="i"><use href="#i-lixo"/></svg></button></form>
+                <form th:action="@{/despensa/remover}" method="post" th:attr="data-confirmar=#{despensa.remover-confirmar}"><input type="hidden" name="itemId" th:value="${item.id}"><button class="acao-icone perigo" type="submit" th:title="#{despensa.remover}" th:attr="aria-label=#{despensa.remover}"><svg class="i"><use href="#i-lixo"/></svg></button></form>
               </td>
             </tr>
           </tbody>
         </table>
-        <p class="muted" id="sem-resultado" hidden style="padding:16px">Nenhum ingrediente encontrado com esse filtro.</p>
+        <p class="muted" id="sem-resultado" hidden style="padding:16px" th:text="#{despensa.sem-filtro}">Nenhum ingrediente encontrado com esse filtro.</p>
       </div>
 
       <div class="vazio" th:if="${#lists.isEmpty(itens)}">
-        <h2>Despensa vazia</h2>
-        <p>Adicione os ingredientes que você tem em casa no formulário acima.</p>
+        <h2 th:text="#{despensa.vazia.titulo}">Despensa vazia</h2>
+        <p th:text="#{despensa.vazia.texto}">Adicione os ingredientes que você tem em casa no formulário acima.</p>
       </div>
     </div>
 

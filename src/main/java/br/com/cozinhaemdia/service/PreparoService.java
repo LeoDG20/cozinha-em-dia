@@ -58,9 +58,9 @@ public class PreparoService {
         arquivos.validarImagem(midia.imagem());
         arquivos.validarVideo(midia.video());
         String url = limpar(midia.imagemUrl());
-        if (!url.isEmpty() && !urlHttpValida(url)) throw new IllegalArgumentException("Informe um endereço de imagem que comece com http:// ou https://.");
+        if (!url.isEmpty() && !urlHttpValida(url)) throw new NegocioException("erro.midia.url", "Informe um endereço de imagem que comece com http:// ou https://.");
         String youtube = limpar(midia.videoUrl());
-        if (!youtube.isEmpty() && YoutubeUtil.extrairId(youtube).isEmpty()) throw new IllegalArgumentException("Informe um link válido do YouTube, por exemplo https://www.youtube.com/watch?v=...");
+        if (!youtube.isEmpty() && YoutubeUtil.extrairId(youtube).isEmpty()) throw new NegocioException("erro.midia.youtube", "Informe um link válido do YouTube, por exemplo https://www.youtube.com/watch?v=...");
         for (Etapa etapa : etapas) arquivos.validarImagem(etapa.foto());
     }
 
