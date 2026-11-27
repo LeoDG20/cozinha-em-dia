@@ -6,6 +6,7 @@ import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.repository.CompartilhamentoRepository;
 import br.com.cozinhaemdia.repository.ReceitaRepository;
 import br.com.cozinhaemdia.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class CompartilhamentoService {
     private final CopiaReceitaService copias;
     private final AmizadeService amizades;
 
+    @Autowired
     public CompartilhamentoService(CompartilhamentoRepository compartilhamentos, ReceitaRepository receitas,
                                    UsuarioRepository usuarios, CopiaReceitaService copias, AmizadeService amizades) {
         this.compartilhamentos = compartilhamentos; this.receitas = receitas;

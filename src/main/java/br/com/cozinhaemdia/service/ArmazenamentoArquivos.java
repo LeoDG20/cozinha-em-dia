@@ -1,5 +1,6 @@
 package br.com.cozinhaemdia.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -35,6 +36,7 @@ public class ArmazenamentoArquivos {
 
     private final Path pasta;
 
+    @Autowired
     public ArmazenamentoArquivos(@Value("${app.uploads.dir:uploads}") String diretorio) {
         this.pasta = Path.of(diretorio).toAbsolutePath().normalize();
     }

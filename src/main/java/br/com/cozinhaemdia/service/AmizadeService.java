@@ -4,6 +4,7 @@ import br.com.cozinhaemdia.model.Amizade;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.repository.AmizadeRepository;
 import br.com.cozinhaemdia.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class AmizadeService {
     private final AmizadeRepository amizades;
     private final UsuarioRepository usuarios;
 
+    @Autowired
     public AmizadeService(AmizadeRepository amizades, UsuarioRepository usuarios) {
         this.amizades = amizades; this.usuarios = usuarios;
     }

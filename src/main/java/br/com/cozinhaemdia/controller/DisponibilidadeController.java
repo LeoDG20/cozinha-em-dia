@@ -2,6 +2,7 @@ package br.com.cozinhaemdia.controller;
 
 import br.com.cozinhaemdia.service.DisponibilidadeService;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +12,7 @@ import java.util.List;
 @Controller
 public class DisponibilidadeController {
     private final DisponibilidadeService service;
+    @Autowired
     public DisponibilidadeController(DisponibilidadeService service) { this.service=service; }
     @GetMapping("/o-que-posso-fazer") public String analisar(@AuthenticationPrincipal UsuarioAutenticado auth, Model model) {
         List<DisponibilidadeService.AnaliseReceita> analises=service.analisar(auth.getId());

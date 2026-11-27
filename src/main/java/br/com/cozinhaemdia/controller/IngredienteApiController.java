@@ -1,6 +1,7 @@
 package br.com.cozinhaemdia.controller;
 
 import br.com.cozinhaemdia.service.CorretorIngredientes;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +15,7 @@ import java.util.List;
 public class IngredienteApiController {
     private final CorretorIngredientes corretor;
 
+    @Autowired
     public IngredienteApiController(CorretorIngredientes corretor) { this.corretor = corretor; }
 
     @GetMapping("/corrigir")

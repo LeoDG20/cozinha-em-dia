@@ -3,6 +3,7 @@ package br.com.cozinhaemdia.controller;
 import br.com.cozinhaemdia.service.ConversorUnidades;
 import br.com.cozinhaemdia.service.CorretorIngredientes;
 import br.com.cozinhaemdia.service.ReceitaService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ public class MedidasController {
 
     private final CorretorIngredientes corretor;
 
+    @Autowired
     public MedidasController(CorretorIngredientes corretor) { this.corretor = corretor; }
 
     @GetMapping("/medidas")

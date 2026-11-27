@@ -2,6 +2,7 @@ package br.com.cozinhaemdia.service;
 
 import br.com.cozinhaemdia.model.EtapaReceita;
 import br.com.cozinhaemdia.model.Receita;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ public class PreparoService {
 
     private final ArmazenamentoArquivos arquivos;
 
+    @Autowired
     public PreparoService(ArmazenamentoArquivos arquivos) { this.arquivos = arquivos; }
 
     /** Texto numerado do modo de preparo, a partir das etapas não vazias. */

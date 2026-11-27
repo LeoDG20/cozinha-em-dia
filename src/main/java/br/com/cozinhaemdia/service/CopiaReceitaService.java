@@ -6,6 +6,7 @@ import br.com.cozinhaemdia.model.ReceitaIngrediente;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.repository.ReceitaIngredienteRepository;
 import br.com.cozinhaemdia.repository.ReceitaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class CopiaReceitaService {
     private final ReceitaIngredienteRepository receitaIngredientes;
     private final ArmazenamentoArquivos arquivos;
 
+    @Autowired
     public CopiaReceitaService(ReceitaRepository receitas, ReceitaIngredienteRepository receitaIngredientes, ArmazenamentoArquivos arquivos) {
         this.receitas = receitas; this.receitaIngredientes = receitaIngredientes; this.arquivos = arquivos;
     }

@@ -1,7 +1,6 @@
 package br.com.cozinhaemdia.controller;
 
 import br.com.cozinhaemdia.model.Usuario;
-import br.com.cozinhaemdia.repository.UsuarioRepository;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.DespensaService;
 import br.com.cozinhaemdia.service.DisponibilidadeService;
@@ -9,6 +8,8 @@ import br.com.cozinhaemdia.service.DisponibilidadeService.AnaliseReceita;
 import br.com.cozinhaemdia.service.DisponibilidadeService.StatusDisponibilidade;
 import br.com.cozinhaemdia.service.ListaDeCompras;
 import br.com.cozinhaemdia.service.ListaDeCompras.Compra;
+import br.com.cozinhaemdia.service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,9 +31,10 @@ import java.util.Set;
 public class MercadoController {
     private final DisponibilidadeService disponibilidade;
     private final DespensaService despensa;
-    private final UsuarioRepository usuarios;
+    private final UsuarioService usuarios;
 
-    public MercadoController(DisponibilidadeService disponibilidade, DespensaService despensa, UsuarioRepository usuarios) {
+    @Autowired
+    public MercadoController(DisponibilidadeService disponibilidade, DespensaService despensa, UsuarioService usuarios) {
         this.disponibilidade = disponibilidade; this.despensa = despensa; this.usuarios = usuarios;
     }
 
@@ -63,7 +65,7 @@ public class MercadoController {
             flash.addFlashAttribute("erro", "Marque ao menos um item para adicionar à despensa.");
             return "redirect:/mercado";
         }
-        Usuario usuario = usuarios.findById(auth.getId()).orElseThrow();
+        Usuario usuario = usuarios.buscar(auth.getId());
         int adicionados = 0;
         List<String> falhas = new ArrayList<>();
         for (String valor : item) {

@@ -1,6 +1,7 @@
 package br.com.cozinhaemdia.controller;
 
 import br.com.cozinhaemdia.service.ArmazenamentoArquivos;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import java.time.Duration;
 public class MidiaController {
     private final ArmazenamentoArquivos arquivos;
 
+    @Autowired
     public MidiaController(ArmazenamentoArquivos arquivos) { this.arquivos = arquivos; }
 
     @GetMapping("/midia/{nome:.+}")

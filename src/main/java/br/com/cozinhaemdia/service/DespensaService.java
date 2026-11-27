@@ -2,6 +2,7 @@ package br.com.cozinhaemdia.service;
 
 import br.com.cozinhaemdia.model.*;
 import br.com.cozinhaemdia.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -10,8 +11,10 @@ import java.util.List;
 public class DespensaService {
     private final DespensaRepository despensa;
     private final IngredienteRepository ingredientes;
+    @Autowired
     public DespensaService(DespensaRepository despensa, IngredienteRepository ingredientes) { this.despensa = despensa; this.ingredientes = ingredientes; }
     public List<Despensa> listar(Long usuarioId) { return despensa.findAllByUsuarioIdOrderByIngredienteNomeAsc(usuarioId); }
+    public long contar(Long usuarioId) { return despensa.countByUsuarioId(usuarioId); }
     @Transactional
     public void adicionar(Usuario usuario, String nome, Double quantidade, String unidade) {
         if (nome == null || nome.isBlank()) throw new IllegalArgumentException("Informe o nome do ingrediente.");

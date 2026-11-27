@@ -2,6 +2,7 @@ package br.com.cozinhaemdia.service;
 
 import br.com.cozinhaemdia.model.Ingrediente;
 import br.com.cozinhaemdia.repository.IngredienteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -45,6 +46,7 @@ public class CorretorIngredientes {
     private final IngredienteRepository ingredientes;
     private final List<String> comuns;
 
+    @Autowired
     public CorretorIngredientes(IngredienteRepository ingredientes) {
         this.ingredientes = ingredientes;
         this.comuns = carregarComuns();

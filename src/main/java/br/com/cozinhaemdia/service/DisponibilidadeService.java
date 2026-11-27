@@ -2,6 +2,7 @@ package br.com.cozinhaemdia.service;
 
 import br.com.cozinhaemdia.model.*;
 import br.com.cozinhaemdia.repository.DespensaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -9,6 +10,7 @@ import java.util.*;
 public class DisponibilidadeService {
     private final ReceitaService receitaService;
     private final DespensaRepository despensaRepository;
+    @Autowired
     public DisponibilidadeService(ReceitaService receitaService, DespensaRepository despensaRepository) { this.receitaService = receitaService; this.despensaRepository = despensaRepository; }
 
     public List<AnaliseReceita> analisar(Long usuarioId) {

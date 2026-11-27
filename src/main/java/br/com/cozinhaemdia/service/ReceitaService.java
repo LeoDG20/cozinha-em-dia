@@ -2,6 +2,7 @@ package br.com.cozinhaemdia.service;
 
 import br.com.cozinhaemdia.model.*;
 import br.com.cozinhaemdia.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -11,10 +12,20 @@ public class ReceitaService {
     private final ReceitaRepository receitas;
     private final ReceitaIngredienteRepository receitaIngredientes;
     private final IngredienteRepository ingredientes;
+    @Autowired
     public ReceitaService(ReceitaRepository receitas, ReceitaIngredienteRepository receitaIngredientes, IngredienteRepository ingredientes) {
         this.receitas = receitas; this.receitaIngredientes = receitaIngredientes; this.ingredientes = ingredientes;
     }
     public List<Receita> listar(Long usuarioId) { return receitas.findAllByUsuarioIdOrderByNomeAsc(usuarioId); }
+    public long contar(Long usuarioId) { return receitas.countByUsuarioId(usuarioId); }
+
+    /** Em quantas receitas do usuário cada ingrediente aparece (chave: identificador do ingrediente). */
+    public Map<Long, Long> usoPorIngrediente(Long usuarioId) {
+        Map<Long, Long> uso = new HashMap<>();
+        for (Object[] linha : receitaIngredientes.contarUsoPorIngrediente(usuarioId)) uso.put((Long) linha[0], ((Number) linha[1]).longValue());
+        return uso;
+    }
+
     public Optional<Receita> buscar(Long id, Long usuarioId) { return receitas.findByIdAndUsuarioId(id, usuarioId); }
 
     @Transactional

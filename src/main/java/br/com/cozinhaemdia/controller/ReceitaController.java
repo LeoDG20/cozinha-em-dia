@@ -5,7 +5,6 @@ import br.com.cozinhaemdia.model.EtapaReceita;
 import br.com.cozinhaemdia.model.Receita;
 import br.com.cozinhaemdia.model.ReceitaIngrediente;
 import br.com.cozinhaemdia.model.Usuario;
-import br.com.cozinhaemdia.repository.UsuarioRepository;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.AmizadeService;
 import br.com.cozinhaemdia.service.CompartilhamentoService;
@@ -21,7 +20,9 @@ import br.com.cozinhaemdia.service.ReceitaService;
 import br.com.cozinhaemdia.service.RegistroReceitaService;
 import br.com.cozinhaemdia.service.RegistroReceitaService.Dados;
 import br.com.cozinhaemdia.service.RegistroReceitaService.Resultado;
+import br.com.cozinhaemdia.service.UsuarioService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -53,12 +54,13 @@ public class ReceitaController {
     private final DisponibilidadeService disponibilidade;
     private final CompartilhamentoService compartilhamentos;
     private final CorretorIngredientes corretor;
-    private final UsuarioRepository usuarios;
+    private final UsuarioService usuarios;
     private final CopiaReceitaService copias;
     private final AmizadeService amizades;
 
+    @Autowired
     public ReceitaController(ReceitaService receitaService, RegistroReceitaService registro, DisponibilidadeService disponibilidade,
-                             CompartilhamentoService compartilhamentos, CorretorIngredientes corretor, UsuarioRepository usuarios,
+                             CompartilhamentoService compartilhamentos, CorretorIngredientes corretor, UsuarioService usuarios,
                              CopiaReceitaService copias, AmizadeService amizades) {
         this.amizades = amizades;
         this.receitaService = receitaService; this.registro = registro; this.disponibilidade = disponibilidade;
@@ -190,7 +192,7 @@ public class ReceitaController {
         Receita receita = receitaService.buscar(id, auth.getId()).orElse(null);
         if (receita == null) { flash.addFlashAttribute("erro", "Receita não encontrada."); return "redirect:/receitas"; }
         List<String> emails = new ArrayList<>();
-        if (amigo != null) for (Long amigoId : amigo) usuarios.findById(amigoId).ifPresent(u -> emails.add(u.getEmail()));
+        if (amigo != null) for (Long amigoId : amigo) usuarios.encontrar(amigoId).ifPresent(u -> emails.add(u.getEmail()));
         if (email != null && !email.isBlank()) emails.add(email);
         if (emails.isEmpty()) { flash.addFlashAttribute("erro", "Escolha ao menos um amigo para compartilhar."); return "redirect:/receitas/" + id; }
         List<String> nomes = new ArrayList<>(), erros = new ArrayList<>();
@@ -357,5 +359,5 @@ public class ReceitaController {
         return m == null ? List.of() : m.getFiles(nome);
     }
 
-    private Usuario usuario(UsuarioAutenticado a) { return usuarios.findById(a.getId()).orElseThrow(); }
+    private Usuario usuario(UsuarioAutenticado a) { return usuarios.buscar(a.getId()); }
 }

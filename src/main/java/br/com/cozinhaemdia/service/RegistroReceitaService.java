@@ -4,6 +4,7 @@ import br.com.cozinhaemdia.model.Receita;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.service.PreparoService.Etapa;
 import br.com.cozinhaemdia.service.PreparoService.Midia;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class RegistroReceitaService {
     private final PreparoService preparo;
     private final CorretorIngredientes corretor;
 
+    @Autowired
     public RegistroReceitaService(ReceitaService receitas, PreparoService preparo, CorretorIngredientes corretor) {
         this.receitas = receitas; this.preparo = preparo; this.corretor = corretor;
     }

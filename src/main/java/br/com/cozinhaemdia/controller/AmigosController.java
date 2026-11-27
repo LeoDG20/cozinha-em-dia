@@ -1,9 +1,10 @@
 package br.com.cozinhaemdia.controller;
 
 import br.com.cozinhaemdia.model.Amizade;
-import br.com.cozinhaemdia.repository.UsuarioRepository;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.AmizadeService;
+import br.com.cozinhaemdia.service.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,9 +18,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class AmigosController {
     private final AmizadeService amizades;
-    private final UsuarioRepository usuarios;
+    private final UsuarioService usuarios;
 
-    public AmigosController(AmizadeService amizades, UsuarioRepository usuarios) { this.amizades = amizades; this.usuarios = usuarios; }
+    @Autowired
+    public AmigosController(AmizadeService amizades, UsuarioService usuarios) { this.amizades = amizades; this.usuarios = usuarios; }
 
     @GetMapping("/amigos")
     public String listar(@AuthenticationPrincipal UsuarioAutenticado auth, Model model) {
@@ -32,7 +34,7 @@ public class AmigosController {
     @PostMapping("/amigos")
     public String convidar(@AuthenticationPrincipal UsuarioAutenticado auth, @RequestParam String email, RedirectAttributes flash) {
         try {
-            Amizade a = amizades.convidar(usuarios.findById(auth.getId()).orElseThrow(), email);
+            Amizade a = amizades.convidar(usuarios.buscar(auth.getId()), email);
             flash.addFlashAttribute("sucesso", a.isAceita()
                     ? "Vocês agora são amigos: " + a.outro(auth.getId()).getNome() + " já tinha enviado um pedido."
                     : "Pedido enviado para " + a.getDestinatario().getNome() + ". A amizade começa quando a pessoa aceitar.");

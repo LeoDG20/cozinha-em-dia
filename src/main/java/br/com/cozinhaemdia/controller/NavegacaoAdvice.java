@@ -3,6 +3,7 @@ package br.com.cozinhaemdia.controller;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.AmizadeService;
 import br.com.cozinhaemdia.service.CompartilhamentoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,6 +15,7 @@ public class NavegacaoAdvice {
     private final CompartilhamentoService compartilhamentos;
     private final AmizadeService amizades;
 
+    @Autowired
     public NavegacaoAdvice(CompartilhamentoService compartilhamentos, AmizadeService amizades) {
         this.compartilhamentos = compartilhamentos; this.amizades = amizades;
     }
