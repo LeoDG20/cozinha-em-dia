@@ -7,6 +7,7 @@ import br.com.cozinhaemdia.model.ReceitaIngrediente;
 import br.com.cozinhaemdia.model.Usuario;
 import br.com.cozinhaemdia.security.UsuarioAutenticado;
 import br.com.cozinhaemdia.service.AmizadeService;
+import br.com.cozinhaemdia.service.ComentarioService;
 import br.com.cozinhaemdia.service.CompartilhamentoService;
 import br.com.cozinhaemdia.service.CopiaReceitaService;
 import br.com.cozinhaemdia.service.CorretorIngredientes;
@@ -57,12 +58,13 @@ public class ReceitaController {
     private final UsuarioService usuarios;
     private final CopiaReceitaService copias;
     private final AmizadeService amizades;
+    private final ComentarioService comentarios;
 
     @Autowired
     public ReceitaController(ReceitaService receitaService, RegistroReceitaService registro, DisponibilidadeService disponibilidade,
                              CompartilhamentoService compartilhamentos, CorretorIngredientes corretor, UsuarioService usuarios,
-                             CopiaReceitaService copias, AmizadeService amizades) {
-        this.amizades = amizades;
+                             CopiaReceitaService copias, AmizadeService amizades, ComentarioService comentarios) {
+        this.amizades = amizades; this.comentarios = comentarios;
         this.receitaService = receitaService; this.registro = registro; this.disponibilidade = disponibilidade;
         this.compartilhamentos = compartilhamentos; this.corretor = corretor; this.usuarios = usuarios; this.copias = copias;
     }
@@ -125,6 +127,8 @@ public class ReceitaController {
         model.addAttribute("analise", disponibilidade.analisarReceita(receita, auth.getId()));
         model.addAttribute("passos", passos(receita));
         model.addAttribute("dono", dono);
+        model.addAttribute("meuId", auth.getId());
+        model.addAttribute("comentarios", comentarios.listar(id, auth.getId()));
         if (dono) {
             List<Compartilhamento> enviadas = compartilhamentos.enviadasDa(id);
             model.addAttribute("destinatarios", enviadas);

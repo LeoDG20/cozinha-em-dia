@@ -39,6 +39,8 @@ public class Receita {
     private List<EtapaReceita> etapas = new ArrayList<>();
     @OneToMany(mappedBy = "receita", cascade = CascadeType.REMOVE)
     private List<Compartilhamento> compartilhamentos = new ArrayList<>();
+    @OneToMany(mappedBy = "receita", cascade = CascadeType.REMOVE)
+    private List<Comentario> comentarios = new ArrayList<>();
 
     public Receita() {}
     public Long getId() { return id; }

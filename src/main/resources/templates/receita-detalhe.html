@@ -126,6 +126,26 @@
       </li>
     </ul>
   </section>
+  <section class="painel comentarios" id="comentarios" style="margin-top:40px">
+    <div class="painel-cab"><h2>Comentários</h2><span class="muted" th:text="${comentarios.size()}">0</span></div>
+    <p class="muted" th:if="${#lists.isEmpty(comentarios)}">Ainda não há comentários.</p>
+    <ul class="lista-comentarios" th:if="${!#lists.isEmpty(comentarios)}">
+      <li th:each="c : ${comentarios}">
+        <span class="avatar" th:text="${#strings.substring(c.autor.nome,0,1).toUpperCase()}">A</span>
+        <div class="corpo">
+          <p class="cabecalho"><b th:text="${c.autor.nome}">Nome</b> <span class="muted" th:text="${#temporals.format(c.criadoEm, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span></p>
+          <p class="texto" th:text="${c.texto}">Texto</p>
+        </div>
+        <form th:if="${dono || c.autor.id == meuId}" th:action="@{/receitas/{id}/comentarios/{cid}/excluir(id=${receita.id},cid=${c.id})}" method="post" data-confirmar="Excluir este comentário?">
+          <button class="link-botao perigo" type="submit">Excluir</button>
+        </form>
+      </li>
+    </ul>
+    <form class="form-comentario" th:action="@{/receitas/{id}/comentarios(id=${receita.id})}" method="post">
+      <textarea name="texto" maxlength="500" required placeholder="Escreva um comentário ou uma sugestão" aria-label="Comentário"></textarea>
+      <button class="btn btn-primary" type="submit" style="justify-self:start">Comentar</button>
+    </form>
+  </section>
 </main>
 </body>
 </html>
