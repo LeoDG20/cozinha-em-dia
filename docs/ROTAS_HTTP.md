@@ -18,6 +18,8 @@
 | `POST` | `/receitas/{id}/compartilhar` | Compartilhar a receita com amigos (parâmetro `amigo`, um ou vários identificadores, e `mensagem` opcional). Recusa quem ainda não é amigo |
 | `POST` | `/receitas/{id}/salvar-copia` | Salvar, na conta do destinatário, uma cópia da receita compartilhada |
 | `POST` | `/receitas/{id}/adaptar` | Criar uma versão adaptada (cópia completa com o nome informado) e abrir a edição dela. Vale para receitas próprias e compartilhadas |
+| `POST` | `/receitas/{id}/comentarios` | Comentar uma receita própria ou compartilhada com o usuário (parâmetro `texto`, até 500 caracteres) |
+| `POST` | `/receitas/{id}/comentarios/{comentarioId}/excluir` | Excluir um comentário (o autor ou o dono da receita) |
 | `GET` | `/compartilhadas` | Listar receitas compartilhadas com o usuário |
 | `POST` | `/compartilhamentos/{id}/remover` | Desfazer um compartilhamento (destinatário ou dono). O parâmetro opcional `receita` faz o dono voltar à página da receita |
 | `GET` | `/midia/{arquivo}` | Entregar imagem ou vídeo enviado (exige login e aceita requisições parciais) |
@@ -37,5 +39,7 @@
 | `POST` | `/amigos/{id}/aceitar` | Aceitar um pedido recebido |
 | `POST` | `/amigos/{id}/recusar` | Recusar um pedido recebido ou cancelar um pedido enviado |
 | `POST` | `/amigos/{id}/desfazer` | Desfazer uma amizade |
+
+Qualquer rota aceita o parâmetro `lang` (`pt-BR` ou `en`) para trocar o idioma da interface; a escolha fica no cookie `idioma`, e valores desconhecidos são ignorados.
 
 As rotas privadas exigem usuário autenticado pelo **Spring Security** (`SecurityConfig`); quem não está autenticado é redirecionado para `/login`. `POST /login` e `POST /logout` são tratados pelo Spring Security (campos `email` e `senha`), e todo `POST` exige o token CSRF, inserido automaticamente pelo Thymeleaf nos formulários.

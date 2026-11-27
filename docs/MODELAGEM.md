@@ -11,6 +11,8 @@ erDiagram
     INGREDIENTES ||--o{ DESPENSA : armazenado
     USUARIOS ||--o{ AMIZADES : solicita
     USUARIOS ||--o{ AMIZADES : recebe
+    RECEITAS ||--o{ COMENTARIOS : recebe
+    USUARIOS ||--o{ COMENTARIOS : escreve
 
     USUARIOS {
       BIGINT id PK
@@ -23,6 +25,13 @@ erDiagram
       BIGINT solicitante_id FK
       BIGINT destinatario_id FK
       BOOLEAN aceita
+      TIMESTAMP criado_em
+    }
+    COMENTARIOS {
+      BIGINT id PK
+      BIGINT receita_id FK
+      BIGINT autor_id FK
+      VARCHAR texto
       TIMESTAMP criado_em
     }
     RECEITAS {
@@ -63,6 +72,7 @@ erDiagram
 | `etapas_receita` | Etapas numeradas do preparo, cada uma com texto e foto opcional | `receita_id`, `ordem`, `descricao`, `imagem_arquivo` |
 | `amizades` | Pedido de amizade entre dois usuários; vira amizade quando `aceita` é verdadeiro | `solicitante_id`, `destinatario_id`, `aceita`, `criado_em` |
 | `compartilhamentos` | Receita enviada pelo dono a outro usuário | `receita_id`, `destino_id`, `mensagem`, `criado_em`, `copiada` |
+| `comentarios` | Comentário de um usuário em uma receita que ele pode ver (própria ou compartilhada com ele) | `receita_id`, `autor_id`, `texto` (até 500 caracteres), `criado_em` |
 | `ingredientes` | Catálogo de ingredientes reutilizável | `id`, `nome` |
 | `receita_ingredientes` | Tabela associativa entre receita e ingrediente, com quantidade requerida | `receita_id`, `ingrediente_id`, `quantidade`, `unidade` |
 | `despensa` | Quantidade de cada ingrediente mantida por cada usuário | `usuario_id`, `ingrediente_id`, `quantidade`, `unidade` |
@@ -73,6 +83,7 @@ erDiagram
 - Uma receita pode conter vários ingredientes; um ingrediente pode aparecer em várias receitas. A tabela `receita_ingredientes` resolve esse relacionamento N:N e armazena quantidade e unidade específicas para aquela receita.
 - Uma receita possui várias etapas (`etapas_receita`), mantidas na ordem em que foram cadastradas e excluídas junto com a receita.
 - Um usuário pode ter vários amigos. A tabela `amizades` relaciona dois usuários (solicitante e destinatário), tem restrição de unicidade para o par e só vale como amizade depois de aceita.
+- Uma receita tem vários comentários e cada comentário pertence a um autor e a uma receita. Ao excluir a receita, os comentários dela são excluídos junto.
 - Uma receita pode ser compartilhada com vários usuários e um usuário pode receber várias receitas. A tabela `compartilhamentos` resolve essa relação N:N e impede que a mesma receita seja enviada duas vezes à mesma pessoa.
 - Um usuário pode ter vários ingredientes na despensa; o mesmo ingrediente pode estar na despensa de vários usuários. A tabela `despensa` resolve esse relacionamento e guarda o estoque individual.
 

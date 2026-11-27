@@ -21,12 +21,14 @@ Aplicação web desenvolvida como trabalho acadêmico para o cadastro de receita
 - Sugestões para nomes digitados com erro (por exemplo, `xocolate` gera a pergunta "Você quis dizer: Chocolate?"). O algoritmo é local e não usa serviço externo: combina distância de edição de Damerau-Levenshtein, uma chave fonética para o português (`ch` e `x`, `ss`, `ç` e `z`, `h` mudo, `qu` e `k`, vogal final) e a comparação de trechos de três letras. Está em `service/CorretorIngredientes.java`.
 - Amigos: a pessoa envia um pedido de amizade pelo e-mail de outro usuário, que aceita ou recusa na página Amigos. Pedidos pendentes aparecem com um contador no menu, e a amizade pode ser desfeita a qualquer momento.
 - Compartilhamento de receitas somente entre amigos: o dono marca os amigos na página da receita e pode incluir uma mensagem opcional. O destinatário vê o que falta na própria despensa e pode salvar uma cópia editável. O dono vê, no cartão e na página da receita, com quem ela foi compartilhada, e pode revogar o acesso.
+- Comentários: quem pode ver uma receita (o dono e os amigos com quem ela foi compartilhada) pode comentá-la com sugestões. O autor do comentário e o dono da receita podem excluí-lo.
 - Adaptação de receitas: o botão "Adaptar" cria uma nova versão, com nome próprio, que já traz copiados ingredientes, etapas, fotos e vídeos. A receita original não é alterada, e a versão indica de qual receita veio.
 - Despensa: inclusão de ingredientes, soma de quantidades de itens já existentes (com conversão de unidades), edição da quantidade e da unidade de cada item, remoção e contagem de receitas que usam cada ingrediente.
 - Lista de mercado: a pessoa escolhe as receitas que pretende preparar e a página mostra apenas o que falta na despensa, somado entre elas e com a indicação das receitas que usam cada item. Ao voltar do mercado, os itens marcados como comprados são somados à despensa.
 - Conversor de medidas: página para converter entre gramas, quilos, mililitros, litros, xícaras e colheres (de sopa e de chá), com tabela de referência. Para passar de peso para volume, o conversor usa a densidade aproximada do ingrediente (farinha, açúcar, leite, óleo e outros).
 - Comparação: classificação das receitas em disponíveis, parciais ou indisponíveis, com a quantidade que falta de cada ingrediente.
 - Receita: ajuste de porções com recálculo das quantidades, marcação de ingredientes e impressão.
+- Internacionalização: a interface está disponível em português do Brasil (padrão) e em inglês. O seletor PT/EN fica no cabeçalho e na tela de acesso; a escolha (`?lang=pt-BR` ou `?lang=en`) é guardada em cookie. Textos, mensagens de erro, formatos de data e nomes das unidades (xícara e `cup`, por exemplo) acompanham o idioma. Nomes de ingredientes e as receitas de demonstração permanecem em português, pois são dados e não textos da interface.
 - Dados de demonstração: dezesseis receitas com fotografia e uma despensa inicial, criadas na primeira execução. Receitas já existentes não são duplicadas.
 
 A comparação considera quantidade e unidade, com conversão automática entre unidades da mesma grandeza: massa (`mg`, `g` e `kg`) e volume (`cl`, `ml`, `l`, `xícara`, `colher` e `colher de chá`). Assim, 1 `kg` na despensa atende uma receita que pede 500 `g`, e 1 `xícara` equivale a 240 `ml`. Entre massa e volume a conversão só ocorre quando o ingrediente tem densidade conhecida (por exemplo, 1 `xícara` de farinha de trigo corresponde a cerca de 120 `g`); sem ela, as quantidades são comparadas apenas na mesma grandeza. As medidas caseiras seguem o padrão brasileiro (xícara de 240 ml, colher de sopa de 15 ml e colher de chá de 5 ml) e as densidades são aproximadas, pois dependem de como o ingrediente é medido. Unidades sem equivalência fixa (`unidade` e `dente`) só são comparadas com elas mesmas. A regra está em `service/ConversorUnidades.java`.
@@ -37,6 +39,7 @@ A comparação considera quantidade e unidade, com conversão automática entre 
 - Spring Boot 3.5.7 (Spring Web, Spring Data JPA e Spring Security 6)
 - Thymeleaf com a extensão de integração ao Spring Security
 - Hibernate ORM e PostgreSQL (16 ou superior)
+- Internacionalização com `MessageSource` do Spring (`messages.properties` e `messages_en.properties`)
 - Maven Wrapper, que dispensa a instalação do Maven
 
 ## Execução local no Windows
@@ -205,7 +208,7 @@ No Linux e no macOS:
 ./mvnw test
 ```
 
-Os testes verificam o envio de imagem, vídeo e fotos de etapas, o compartilhamento entre dois usuários, a adaptação de receitas, as sugestões para ingredientes digitados com erro, o fluxo de amigos, a lista de mercado, o conversor de medidas, a busca com correção de digitação, o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
+Os testes verificam a troca de idioma e a paridade entre as mensagens em português e em inglês, os comentários em receitas, o envio de imagem, vídeo e fotos de etapas, o compartilhamento entre dois usuários, a adaptação de receitas, as sugestões para ingredientes digitados com erro, o fluxo de amigos, a lista de mercado, o conversor de medidas, a busca com correção de digitação, o redirecionamento de rotas protegidas, o login com BCrypt, a rejeição de senha incorreta, o cadastro, o logout, a exigência do token CSRF, a renderização das páginas autenticadas e a validade dos scripts SQL. Eles utilizam um PostgreSQL embutido e descartável, portanto não dependem de nenhuma instalação nem alteram o banco de desenvolvimento.
 
 ## Documentação
 
@@ -218,20 +221,22 @@ Navegador / Thymeleaf
         ↓ HTTP
    Spring Security
         ↓
-     Controller
+     Controller      recebe a requisição e prepara a tela; só conhece Services
         ↓
-      Service       regras de negócio e comparação de ingredientes
+      Service        regras de negócio e controle de transações
         ↓
-     Repository
+     Repository      acesso aos dados
         ↓ JPA / Hibernate
      PostgreSQL
 ```
+
+Os controladores não acessam repositórios: toda consulta ou alteração passa por uma classe de `service/`, que é quem abre a transação e fala com os repositórios. Os componentes (controladores, serviços e repositórios) são ligados por injeção de dependências do Spring: cada classe declara as dependências em um construtor anotado com `@Autowired`, sem criar objetos com `new`.
 
 ### Estrutura do código
 
 ```text
 src/main/java/br/com/cozinhaemdia/
-  config/       Spring Security (SecurityConfig) e dados iniciais
+  config/       Spring Security (SecurityConfig), idioma (InternacionalizacaoConfig, Mensagens) e dados iniciais
   security/     UserDetailsService e usuário autenticado
   controller/   rotas e preparação dos dados para as telas
   model/        entidades JPA
@@ -241,6 +246,7 @@ src/main/resources/
   templates/    páginas Thymeleaf
   static/css/   estilo da interface
   static/js/    linhas dinâmicas do formulário, prévia de arquivos e correção ao digitar
+  messages.properties, messages_en.properties   textos da interface em português e em inglês
   application.properties
 src/test/java/  testes automatizados
 database/       scripts SQL de referência
